@@ -66,7 +66,7 @@ CREATE TABLE Threads(
     userID int,
     forumID int,
     threadDetails varchar(255),
-    replyID int,
+    replyID int,,
     dateCreated date,
     FOREIGN KEY (userID) REFERENCES Users(userID),
     FOREIGN KEY (forumID) REFERENCES Forums(forumID));
