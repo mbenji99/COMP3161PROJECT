@@ -49,3 +49,4 @@ def getUsers():
 if __name__ == "__main__": 
     #app.run()
     dbm.genCreateSQL()
+    dbm.genInsertSQL()

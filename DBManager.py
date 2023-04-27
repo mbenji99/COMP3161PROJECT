@@ -25,7 +25,7 @@ ef create_tables():
 def populate_tables():
     fullNames = nameGenerator.getFullNames()
     genCreateSQL()
-    genInsertSQL(fullNames)
+    genInsertSQL()
     db = get_database()
     cursor = db.cursor()
     
@@ -166,13 +166,14 @@ def genCreateSQL():
     query += "    FOREIGN KEY (assignment_id) REFERENCES Assignments (assignment_id));\n\n"
     file.write(query)
     
-def genInsertSQL(names):
+def genInsertSQL():
+    names = nameGenerator.getFullNames()
     sqlFile = open('InsertQueries.sql', 'w')
-    sqlFile.write("USE eclassroom;\n\n")
+    sqlFile.write("USE eclass;\n\n")
     
     adminQuery = "INSERT INTO Admins (userID) VALUES (1);\n\n"        
-    employeeQuery = "INSERT INTO Employees (userID,employeeType,salary) VALUES (2,80000);\n\n"        
-    studentQuery = "INSERT INTO Students (studentID,level,tuition) VALUES \n"
+    employeeQuery = "INSERT INTO Employees (userID,salary) VALUES (2,80000);\n\n"        
+    studentQuery = "INSERT INTO Students (studentID,level,date_enrolled) VALUES \n"
     userQuery = "INSERT INTO Users (userID,firstName,lastName,email,passW) VALUES \n"
     userQuery += "    (1,'Chukwudi','Ojuro','chukwudiojuro@gmail.com','password'),\n"
     
@@ -181,7 +182,7 @@ def genInsertSQL(names):
     for name in names:
         names = name.split(" ")
         
-        studentQuery +=f"    ({count},'UNDERGRAD',45000),\n"
+        studentQuery +=f"    ({count},'UNDERGRAD','01-01-2020'),\n"
         userQuery += f"    ({count},'{names[0]}','{names[1]}','{names[0]}{names[1]}@gmail.com','{names[1]}{names[0]}'),\n"
         
         count+=1
