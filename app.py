@@ -197,6 +197,8 @@ def getReports():
     else:
         return make_response({"Status": "Invalid report type."}, 400)
 if __name__ == "__main__":
+    dbm.genCreateSQL()
+    dbm.genInsertSQL()
     dbm.create_tables()
     dbm.populate_tables()
     #app.run()
