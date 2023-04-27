@@ -46,6 +46,53 @@ def getUsers():
     db.close()
     return make_response(users,200)
 
+@app.route('/courses', methods=['POST'])
+def createCourse():
+    admin_user_type = "admin"
+    userID = request.form.get('userID')
+    passW = request.form.get('passW')
+    course_name = request.form.get('courseName')
+    start_date = request.form.get('startDate')
+
+    # check if the user is an admin
+    user = dbm.get_user_by_id(userID)
+    if user and user['passW'] == passW and user['userType'] == admin_user_type:
+        # generate a new course ID
+        c_id = "C" + str(dbm.get_next_course_id())
+
+        # insert the new course into the database
+        dbm.create_course({"c_id": c_id, "course_name": course_name, "start_date": start_date})
+
+        return make_response({"Status": "Course created successfully.", "c_id": c_id}, 200)
+    else:
+        return make_response({"Status": "You do not have permission to create a course."}, 401)
+
+@app.route('/courses', methods=['GET'])
+def getCourses():
+    course_id = request.args.get('courseID')
+    student_id = request.args.get('studentID')
+    lecturer_id = request.args.get('lecturerID')
+
+    if course_id:
+        # retrieve a specific course
+        course = dbm.get_course_by_id(course_id)
+        if course:
+            return make_response(course, 200)
+        else:
+            return make_response({"Status": "Course not found."}, 404)
+    elif student_id:
+        # retrieve courses for a specific student
+        courses = dbm.get_courses_by_student_id(student_id)
+        return make_response(courses, 200)
+    elif lecturer_id:
+        # retrieve courses taught by a specific lecturer
+        courses = dbm.get_courses_by_lecturer_id(lecturer_id)
+        return make_response(courses, 200)
+    else:
+        # retrieve all courses
+        courses = dbm.get_all_courses()
+        return make_response(courses, 200)
+
 if __name__ == "__main__":
     dbm.create_tables()
     dbm.populate_tables()
