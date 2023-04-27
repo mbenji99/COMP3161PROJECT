@@ -46,28 +46,6 @@ def getUsers():
     db.close()
     return make_response(users,200)
 
-if __name__ == "__main__":
-    dbm.create_tables()
-    dbm.populate_tables()
+if __name__ == "__main__": 
     #app.run()
-    
-
-'''
-CREATE TABLE Forums(
-    forumID int PRIMARY KEY,
-    forumTitle varchar(200),
-    forumDetails varchar(200),
-    courseCode varchar(50),
-    dateCreated date,
-    FOREIGN KEY (courseCode) REFERENCES Courses(courseCode));
-
-CREATE TABLE Threads(
-    threadID int PRIMARY KEY,
-    userID int,
-    forumID int,
-    threadDetails varchar(255),
-    replyID int,,
-    dateCreated date,
-    FOREIGN KEY (userID) REFERENCES Users(userID),
-    FOREIGN KEY (forumID) REFERENCES Forums(forumID));
-'''
+    dbm.genCreateSQL()

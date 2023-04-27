@@ -1,92 +1,103 @@
-DROP DATABASE IF EXISTS eclassroom;
-CREATE DATABASE eclassroom;
-USE eclassroom;
+DROP DATABASE IF EXISTS eclass;
+CREATE DATABASE IF NOT EXISTS eclass;
+USE eclass;
 
 CREATE TABLE Users(
-    userID int PRIMARY KEY,
-    firstName varchar(100),
-    lastName varchar(100),
+    u_id int PRIMARY KEY,
+    fName varchar(100),
+    lName varchar(100),
     email varchar(100),
     passW varchar(100));
 
-CREATE TABLE Employees(
-    userID int PRIMARY KEY,
-    employeeType varchar(8),
+CREATE TABLE Admins(
+    admin_id int PRIMARY KEY,
+    FOREIGN KEY (admin_id) REFERENCES Users (u_id));
+
+CREATE TABLE Lecturers(
+    lect_id int PRIMARY KEY,
     salary int,
-    FOREIGN KEY (userID) REFERENCES Users (userID));
+    FOREIGN KEY (lect_id) REFERENCES Users (u_id));
 
 CREATE TABLE Students(
-    studentID int PRIMARY KEY,
+    stud_id int PRIMARY KEY,
     level varchar(13),
-    tuition int,
-    FOREIGN KEY studentID REFERENCES Users (userID));
+    date_enrolled varchar(20),
+    FOREIGN KEY (stud_id) REFERENCES Users (u_id));
 
 CREATE TABLE Courses(
     courseCode varchar(50) PRIMARY KEY,
-    courseName varchar(255),
-    faculty varchar(100),
+    course_name varchar(255),
+    start_date varchar(20),
     credits int);
 
-CREATE TABLE CourseMembers(
-    userID int NOT NULL,
+CREATE TABLE Enrolled(
+    u_id int NOT NULL,
     courseCode varchar(50) NOT NULL,
-    CONSTRAINT PK_Members PRIMARY KEY (userID,courseCode));
+    FOREIGN KEY (u_id) REFERENCES Students (u_id),
+    FOREIGN KEY (courseCode) REFERENCES Courses (courseCode),
+    CONSTRAINT PK_Members PRIMARY KEY (u_id,courseCode));
+
+CREATE TABLE Course_Maintainers(
+    lect_id int NOT NULL,
+    courseCode varchar(50) NOT NULL,
+    FOREIGN KEY (lect_id) REFERENCES Lecturers (u_id),
+    FOREIGN KEY (courseCode) REFERENCES Courses (courseCode),
+    CONSTRAINT PK_Members PRIMARY KEY (lect_id,courseCode));
 
 CREATE TABLE Forums(
-    forumID int PRIMARY KEY,
-    forumTitle varchar(200),
-    forumDetails varchar(200),
+    forum_id int PRIMARY KEY,
+    forum_title varchar(200),
+    forum_details varchar(200),
     courseCode varchar(50),
-    dateCreated date,
+    date_created date,
     FOREIGN KEY (courseCode) REFERENCES Courses(courseCode));
 
 CREATE TABLE Threads(
-    threadID int PRIMARY KEY,
-    userID int,
-    forumID int,
-    threadDetails varchar(255),
-    replyID int,
-    dateCreated date,
-    FOREIGN KEY (userID) REFERENCES Users(userID),
-    FOREIGN KEY (forumID) REFERENCES Forums(forumID));
+    thread_id int PRIMARY KEY,
+    u_id int,
+    forum_id int,
+    thread_details varchar(255),
+    reply_id int,
+    date_created date,
+    FOREIGN KEY (u_id) REFERENCES Users(u_id),
+    FOREIGN KEY (forum_id) REFERENCES Forums(forum_id));
 
 CREATE TABLE Sections(
-    sectionID int PRIMARY KEY,
+    section_id int PRIMARY KEY,
     courseCode varchar(50),
-    sectionName varchar(100),
+    section_name varchar(100),
     FOREIGN KEY (courseCode) REFERENCES Courses(courseCode));
 
 CREATE TABLE Content(
-    contentID int PRIMARY KEY,
-    sectionID int,
+    content_id int PRIMARY KEY,
+    section_id int,
     details varchar(255),
-    fileName varchar(100),
-    FOREIGN KEY (sectionID) REFERENCES Sections(sectionID));
+    file_name varchar(100),
+    FOREIGN KEY (section_id) REFERENCES Sections(section_id));
 
 CREATE TABLE Assignments(
-    assignmentID int PRIMARY KEY,
-    dueDate date,
-    FOREIGN KEY (assignmentID) REFERENCES Content(contentID));
+    assignment_id int PRIMARY KEY,
+    due_date date,
+    FOREIGN KEY (assignment_id) REFERENCES Content(content_id));
 
 CREATE TABLE Submissions(
-    assignmentID int,
-    studentID int,
-    fileName varchar(255),
-    dateSubmitted date,
-    CONSTRAINT PK_Subs PRIMARY KEY (assignmentID,studentID),
-    FOREIGN KEY assignmentID REFERENCES Assignments (assignmentID),
-    FOREIGN KEY studentID REFERENCES Students (studentID));
+    assignment_id int,
+    stud_id int,
+    file_name varchar(255),
+    date_submitted date,
+    CONSTRAINT PK_Subs PRIMARY KEY (assignment_id,stud_id),
+    FOREIGN KEY (assignment_id) REFERENCES Assignments (assignment_id),
+    FOREIGN KEY (stud_id) REFERENCES Students (stud_id));
 
 CREATE TABLE CalendarEvents(
-    eventID int PRIMARY KEY,
-    eventName varchar(255),
-    eventDetails varchar(255),
-    eventDate date);
+    event_id int PRIMARY KEY,
+    event_name varchar(255),
+    event_details varchar(255),
+    event_date varchar(20));
 
 CREATE TABLE AssignmentEvents(
-    eventID int,
-    assignmentID varchar(255),
-    CONSTRAINT PK_AEvents PRIMARY KEY (eventID,assignmentID),
-    FOREIGN KEY eventID REFERENCES CalendarEvents (eventID),
-    FOREIGN KEY assignmentID REFERENCES Assignments (assignmentID));
+    event_id int PRIMARY KEY,
+    assignment_id varchar(255),
+    FOREIGN KEY (event_id) REFERENCES CalendarEvents (event_id),
+    FOREIGN KEY (assignment_id) REFERENCES Assignments (assignment_id));
 
