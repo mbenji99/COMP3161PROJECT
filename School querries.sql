@@ -51,7 +51,7 @@ Create table Courses (
 	course_name varchar(255), 
     start_date Date, 
 -- chk_course_members: ensures that each course has at least 10 members
-    CONSTRAINT chk_course_members CHECK (course_id IN (
+    CONSTRAINT chk_course_members CHECK (c_id IN (
         SELECT c_id FROM CourseMembers GROUP BY c_id HAVING COUNT(*) >= 10
     ))
 );
@@ -128,6 +128,4 @@ CREATE TABLE Threads(
     FOREIGN KEY (u_id) REFERENCES Users(u_id),
     FOREIGN KEY (forum_id) REFERENCES Forums(forum_id));
 
-
-select * from Course_Maintainers;
 
