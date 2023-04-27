@@ -170,7 +170,8 @@ def genInsertSQL(names):
     sqlFile = open('InsertQueries.sql', 'w')
     sqlFile.write("USE eclassroom;\n\n")
     
-    employeeQuery = "INSERT INTO Employees (userID,employeeType,salary) VALUES (1,'ADMIN',100000),(2,'LECTURER',80000);\n\n"        
+    adminQuery = "INSERT INTO Admins (userID) VALUES (1);\n\n"        
+    employeeQuery = "INSERT INTO Employees (userID,employeeType,salary) VALUES (2,80000);\n\n"        
     studentQuery = "INSERT INTO Students (studentID,level,tuition) VALUES \n"
     userQuery = "INSERT INTO Users (userID,firstName,lastName,email,passW) VALUES \n"
     userQuery += "    (1,'Chukwudi','Ojuro','chukwudiojuro@gmail.com','password'),\n"
@@ -190,6 +191,7 @@ def genInsertSQL(names):
     userQuery += "    (2,'Chuck','Falcon','chuckfalcon@gmail.com','password');\n\n"
 
     sqlFile.write(userQuery)
+    sqlFile.write(adminQuery)
     sqlFile.write(employeeQuery)
     sqlFile.write(studentQuery)
     
