@@ -222,6 +222,8 @@ def login_user(userID, passW):
         return res[0]
     else:
         return "Null"
+
+def create_courses():
     
 def get_courses(case):
     if case == "All":
