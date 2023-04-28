@@ -199,5 +199,8 @@ def getReports():
 if __name__ == "__main__":
     dbm.genCreateSQL()
     dbm.genInsertSQL()
+    dbm.create_tables()
+    dbm.populate_tables()
+    #app.run()
 
 
