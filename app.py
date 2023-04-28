@@ -201,6 +201,6 @@ if __name__ == "__main__":
     dbm.genInsertSQL()
     dbm.create_tables()
     dbm.populate_tables()
-    #app.run()
+    app.run()
 
 
