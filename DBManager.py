@@ -223,11 +223,11 @@ def login_user(userID, passW):
     else:
         return "Null"
 
-def create_courses(info):
+def create_course(info):
     # Create a new course with the provided information
     cursor = connection.cursor()
-    cursor.execute("INSERT INTO Courses (c_id, course_name, start_date) VALUES (%s, %s, %s)",
-                   (info['c_id'], info['course_name'], info['start_date']))
+    cursor.execute("INSERT INTO Courses (course_code, course_name, start_date, credits) VALUES (%s, %s, %s, %s)",
+                   (info['courseCode'], info['course_name'], info['start_date'], info['credits']))
     connection.commit()
   
 def get_courses(case):
@@ -236,14 +236,15 @@ def get_courses(case):
         cursor.execute("SELECT * FROM Courses")
         return cursor.fetchall()
     else:
-        cursor.execute("SELECT * FROM Courses WHERE c_id=%s", (case,))
+        cursor.execute("SELECT * FROM Courses WHERE courseCode=%s", (case,))
         return cursor.fetchone()
 
 def register_for_course(info):
     cursor = connection.cursor()
-    cursor.execute("INSERT INTO CourseMembers (c_id, s_id, lec_id, date_joined) VALUES (%s, %s, %s, %s)",
-                   (info['c_id'], info['s_id'], info['lec_id'], info['date_joined']))
+    cursor.execute("INSERT INTO Enrolled (u_id, courseCode) VALUES (%s, %s)",
+                   (info['stud_id'], info['courseCode']))
     connection.commit()
+
 
 def assign_lecturer(courseCode,lecturerID):
     pass
@@ -251,21 +252,27 @@ def assign_lecturer(courseCode,lecturerID):
 def get_members(course):
     pass
 
-def get_course_events(courseCode):
+def get_course_events(course_code):
     cursor = connection.cursor(dictionary=True)
-    cursor.execute("SELECT * FROM CourseAssignments WHERE c_id=%s", (courseCode,))
+    cursor.execute("SELECT * FROM Courses WHERE courseCode=%s", (course_code,))
     return cursor.fetchall()
 
-def get_date_events(date, studentID):
+def get_date_events(date, student_id):
     cursor = connection.cursor(dictionary=True)
-    cursor.execute("SELECT * FROM CourseAssignments WHERE date_assigned=%s AND c_id IN \
-                    (SELECT c_id FROM CourseMembers WHERE s_id=%s)", (date, studentID))
+    cursor.execute("SELECT * FROM Courses WHERE start_date=%s AND courseCode IN \
+                    (SELECT courseCode FROM Enrolled WHERE u_id=%s)", (date, student_id))
     return cursor.fetchall()
 
 def create_calendar_event(info):
     cursor = connection.cursor()
-    cursor.execute("INSERT INTO CourseAssignments (course_assignment_id, c_id, lec_id, date_assigned) \
-                    VALUES (%s, %s, %s, %s)", (info['course_assignment_id'], info['c_id'], info['lec_id'], info['date_assigned']))
+    cursor.execute("INSERT INTO CalendarEvents (event_id, event_name, event_details, event_date) \
+                    VALUES (%s, %s, %s, %s)", (info['event_id'], info['event_name'], info['event_details'], info['event_date']))
+    connection.commit()
+
+def create_assignment_event(info):
+    cursor = connection.cursor()
+    cursor.execute("INSERT INTO AssignmentEvents (event_id, assignment_id) \
+                    VALUES (%s, %s)", (info['event_id'], info['assignment_id']))
     connection.commit()
 
 def create_forum(info):
@@ -279,11 +286,11 @@ def create_thread(info):
 
 def get_courses_with_50_or_more_students():
     query = """
-        SELECT c.c_id, c.course_name, COUNT(cm.course_member_id) as num_students
+        SELECT c.courseCode, c.course_name, COUNT(e.u_id) as num_students
         FROM Courses c
-        JOIN CourseMembers cm ON c.c_id = cm.c_id
-        GROUP BY c.c_id
-        HAVING COUNT(cm.course_member_id) >= 50
+        JOIN Enrolled e ON c.courseCode = e.courseCode
+        GROUP BY c.courseCode
+        HAVING COUNT(e.u_id) >= 50
         ORDER BY num_students DESC;
     """
     result = db.session.execute(query).fetchall()
@@ -291,11 +298,11 @@ def get_courses_with_50_or_more_students():
 
 def get_students_with_5_or_more_courses():
     query = """
-        SELECT s.s_id, s.first_name, s.last_name, COUNT(cm.course_member_id) as num_courses
-        FROM Student s
-        JOIN CourseMembers cm ON s.s_id = cm.s_id
-        GROUP BY s.s_id
-        HAVING COUNT(cm.course_member_id) >= 5
+        SELECT s.stud_id, s.fName, s.lName, COUNT(e.courseCode) as num_courses
+        FROM Students s
+        JOIN Enrolled e ON s.stud_id = e.u_id
+        GROUP BY s.stud_id
+        HAVING COUNT(e.courseCode) >= 5
         ORDER BY num_courses DESC;
     """
     result = db.session.execute(query).fetchall()
@@ -303,11 +310,11 @@ def get_students_with_5_or_more_courses():
 
 def get_lecturers_with_3_or_more_courses():
     query = """
-        SELECT cm.lec_id, cm.first_name, cm.last_name, COUNT(ca.course_assignment_id) as num_courses
-        FROM CourseAssignments ca
-        JOIN Course_Maintainers cm ON ca.lec_id = cm.lec_id
-        GROUP BY cm.lec_id
-        HAVING COUNT(ca.course_assignment_id) >= 3
+        SELECT cm.lect_id, cm.fName, cm.lName, COUNT(ca.courseCode) as num_courses
+        FROM Course_Maintainers ca
+        JOIN Lecturers cm ON ca.lect_id = cm.lect_id
+        GROUP BY cm.lect_id
+        HAVING COUNT(ca.courseCode) >= 3
         ORDER BY num_courses DESC;
     """
     result = db.session.execute(query).fetchall()
@@ -315,10 +322,10 @@ def get_lecturers_with_3_or_more_courses():
 
 def get_top_10_enrolled_courses():
     query = """
-        SELECT c.course_name, COUNT(cm.course_member_id) as num_students
+        SELECT c.course_name, COUNT(e.u_id) as num_students
         FROM Courses c
-        JOIN CourseMembers cm ON c.c_id = cm.c_id
-        GROUP BY c.c_id
+        JOIN Enrolled e ON c.courseCode = e.courseCode
+        GROUP BY c.courseCode
         ORDER BY num_students DESC
         LIMIT 10;
     """
@@ -327,10 +334,10 @@ def get_top_10_enrolled_courses():
 
 def get_top_10_students_by_average():
     query = """
-        SELECT s.s_id, s.first_name, s.last_name, AVG(g.grade) as average_grade
-        FROM Student s
-        JOIN Grades g ON s.s_id = g.s_id
-        GROUP BY s.s_id
+        SELECT s.stud_id, s.fName, s.lName, AVG(g.grade) as average_grade
+        FROM Students s
+        JOIN Grades g ON s.stud_id = g.s_id
+        GROUP BY s.stud_id
         ORDER BY average_grade DESC
         LIMIT 10;
     """
