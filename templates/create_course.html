@@ -1,0 +1,20 @@
+{% extends 'base.html'%}
+
+{% block main %}
+<form class="form-login m-auto" action={{ url_for('create_course') }} method="post" enctype="multipart/form-data">
+    <div class="form-floating">
+        {{ form.userID(class='form-control', placeholder="Enter your user ID") }}
+        {{ form.userID.label() }}
+    </div>
+    <div class="form-floating">
+        {{ form.course_name(class='form-control', placeholder="Enter course name") }}
+        {{ form.course_name.label() }}
+    </div>
+    <div class="form-floating">
+        {{ form.start_date(class='form-control', placeholder="Enter course start date") }}
+        {{ form.start_date.label() }}
+    </div>
+  
+    <button class="btn btn-lg btn-primary w-100 mt-3" type="submit">Create Course</button>
+</form>
+{% endblock%}

@@ -1,0 +1,94 @@
+body {
+    padding-top: 5rem;
+}
+
+.navbar {
+    background-color: aqua;
+}
+
+.form-login {
+    max-width: 330px;
+    padding: 15px;
+}
+
+.form-login input[type="text"] {
+    margin-bottom: -1px;
+    border-bottom-right-radius: 0;
+    border-bottom-left-radius: 0;
+}
+
+.form-login input[type="password"] {
+    margin-bottom: 10px;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+}
+
+.image {
+    display: grid;
+    grid-template-columns: auto auto auto;
+    grid-row: auto auto auto;
+    gap: 15px;
+}
+
+.pic {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.full_container {
+    display: flex;
+    background-color: rgb(244, 246, 248);
+}
+
+.full_container img {
+    width: auto;
+    height: auto;
+}
+
+.to_colour {
+    display: flex;
+    gap: 100px;
+}
+
+.price {
+    background-color: blue;
+    color: white;
+    vertical-align: middle;
+    width: 100px;
+    height: 50px;
+    border-radius: 50px / 25px;
+
+}
+
+.type {
+    background-color: orange;
+    color: white;
+    vertical-align: middle;
+    width: 100px;
+    height: 50px;
+    border-radius: 50px / 25px;
+}
+
+.align {
+    display: flex;
+    /*justify-content: space-between;*/
+    gap: 30px;
+}
+
+.align .set {
+    display: inline;
+}
+
+.set img {
+    height: 20px;
+    width: auto;
+}
+
+/*h5 {
+    width: 100px;
+    height: 50px;
+    border-radius: 50px / 25px;
+    font-size: 14px;
+    vertical-align: middle;
+}*/

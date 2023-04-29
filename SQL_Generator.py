@@ -5,6 +5,7 @@ import DBManager as dbm
 
     
 def getFirstNames():
+    print("generating first names")
     fNames = set()
     while len(fNames) < 317:
         if len(fNames) < 158:
@@ -15,6 +16,7 @@ def getFirstNames():
     return list(fNames)
 
 def getLastNames():
+    print("generating last names")
     lNames = set()
     while len(lNames) < 316:
         lNames.add(names.get_last_name())
@@ -23,6 +25,7 @@ def getLastNames():
 
 
 def getFullNames():
+    print("Generating full names")
     fullNames = []
     fNames = getFirstNames()
     lNames = getLastNames()
@@ -33,6 +36,7 @@ def getFullNames():
     return fullNames
 
 def genCreateSQL():
+    print("Generating Create SQL")
     file = open('CreateQueries.sql','w')
     
     query = "DROP DATABASE IF EXISTS eclass;\n"
@@ -90,7 +94,7 @@ def genCreateSQL():
     file.write(query)
     
     query = "CREATE TABLE Forums(\n"
-    query += "    forum_id int PRIMARY KEY,\n"
+    query += "    forum_id int PRIMARY KEY AUTO_INCREMENT,\n"
     query += "    forum_title varchar(200),\n"
     query += "    forum_details varchar(200),\n"
     query += "    courseCode varchar(50),\n"
@@ -99,7 +103,7 @@ def genCreateSQL():
     file.write(query)
     
     query = "CREATE TABLE Threads(\n"
-    query += "    thread_id int PRIMARY KEY,\n"
+    query += "    thread_id int PRIMARY KEY AUTO_INCREMENT,\n"
     query += "    u_id int,\n"
     query += "    forum_id int,\n"
     query += "    thread_details varchar(255),\n"
@@ -110,14 +114,14 @@ def genCreateSQL():
     file.write(query)
     
     query = "CREATE TABLE Sections(\n"
-    query += "    section_id int PRIMARY KEY,\n"
+    query += "    section_id int PRIMARY KEY AUTO_INCREMENT,\n"
     query += "    courseCode varchar(50),\n"
     query += "    section_name varchar(100),\n"
     query += "    FOREIGN KEY (courseCode) REFERENCES Courses(courseCode));\n\n"
     file.write(query)
     
     query = "CREATE TABLE Content(\n"
-    query += "    content_id int PRIMARY KEY,\n"
+    query += "    content_id int PRIMARY KEY AUTO_INCREMENT,\n"
     query += "    section_id int,\n"
     query += "    details varchar(255),\n"
     query += "    file_name varchar(100),\n"
@@ -135,16 +139,18 @@ def genCreateSQL():
     query += "    stud_id int,\n"
     query += "    file_name varchar(255),\n"
     query += "    date_submitted date,\n"
-    query += "    CONSTRAINT PK_Subs PRIMARY KEY (assignment_id,stud_id),\n"
+    query += "    PRIMARY KEY (assignment_id,stud_id),\n"
     query += "    FOREIGN KEY (assignment_id) REFERENCES Assignments (assignment_id),\n"
     query += "    FOREIGN KEY (stud_id) REFERENCES Students (stud_id));\n\n"
     file.write(query)
     
     query = "CREATE TABLE CalendarEvents(\n"
-    query += "    event_id int PRIMARY KEY,\n"
+    query += "    event_id int PRIMARY KEY AUTO_INCREMENT,\n"
+    query += "    courseCode varchar(255),\n"
     query += "    event_name varchar(255),\n"
     query += "    event_details varchar(255),\n"
-    query += "    event_date varchar(20));\n\n"
+    query += "    event_date varchar(20),\n"
+    query += "    FOREIGN KEY (courseCode) REFERENCES Courses (courseCode));\n\n"
     file.write(query)
     
     query = "CREATE TABLE AssignmentEvents(\n"
@@ -155,6 +161,7 @@ def genCreateSQL():
     file.write(query)
 
 def genInsertSQL():
+    print("Generating insert SQL")
     names = getFullNames()
     sqlFile = open('Queries/InsertQueries.sql', 'w')
     insert_sqlFile = open("Queries/InsertQueries1.sql",'w')
@@ -184,7 +191,7 @@ def genInsertSQL():
     count = 620000000
     i_count = 0
     q_count = 1
-    mod_amount = 3000
+    mod_amount = 2500
     for n in range(len(names)):
         name = names[n].split(" ")
         numEnrol = random.randint(3,6)
@@ -202,8 +209,8 @@ def genInsertSQL():
             else:
                 enrolQuery += f"({count},'{courseCodes[i]}'),"
         
-        studentQuery =f"INSERT INTO Students VALUES ({count},'UNDERGRAD','01-01-2020');\n"
-        userQuery = f"INSERT INTO Users VALUES ({count},'{name[0]}','{name[1]}','{name[0]}{name[1]}@gmail.com','{name[1]}{name[0]}');\n"
+        studentQuery =f"INSERT INTO Students (stud_id,level,date_enrolled) VALUES ({count},'UNDERGRAD','01-01-2020');\n"
+        userQuery = f"INSERT INTO Users (u_id,fName,lName,email,passW) VALUES ({count},'{name[0]}','{name[1]}','{name[0]}{name[1]}@gmail.com','{name[1]}{name[0]}');\n"
         
         insert_sqlFile.write(userQuery)
         insert_sqlFile.write(studentQuery)
@@ -213,18 +220,18 @@ def genInsertSQL():
         i_count+=1
         
     
-    query = "INSERT INTO Users VALUES (3,'Bob','Turner','bobturner@gmail.com','password'),\n"
+    query = "INSERT INTO Users (u_id,fName,lName,email,passW) VALUES (3,'Bob','Turner','bobturner@gmail.com','password'),\n"
     query += "    (2,'Chuck','Falcon','chuckfalcon@gmail.com','password'),\n"
     query += "    (1,'Chukwudi','Ojuro','chukwudiojuro@gmail.com','password');\n\n"
     insert_sqlFile.write(query)
     
-    query = "INSERT INTO Students VALUES (3,'GRAD',45000);\n\n"
+    query = "INSERT INTO Students (stud_id,level,date_enrolled) VALUES (3,'GRAD','5/Jan');\n"
     insert_sqlFile.write(query)
     
-    query = f"INSERT INTO Courses VALUES (3,'{courseCodes[0]}'),\n    (3,'{courseCodes[1]}'),\n    (3,'{courseCodes[2]}');\n\n"
+    query = f"INSERT INTO Enrolled (u_id,courseCode) VALUES (3,'{courseCodes[0]}'),\n    (3,'{courseCodes[1]}'),\n    (3,'{courseCodes[2]}');\n\n"
     insert_sqlFile.write(query)
     
-    query = "INSERT INTO Admins (admin_id) VALUES (1);\n\n"        
+    query = "INSERT INTO Admins (admin_id) VALUES (1);\n"        
     insert_sqlFile.write(query)
     
     query = "INSERT INTO Lecturers (lect_id,salary) VALUES (2,80000);\n\n"  
@@ -247,19 +254,13 @@ def executeSQL():
             continue
     
      
-    for i in range(1,34):
-        print("Executing SQL file "+str(i))
+    for i in range(1,42):
         with open('Queries/InsertQueries'+str(i)+'.sql', 'r') as sqlFile:
             res = cursor.execute(sqlFile.read(), multi=True)
             for _ in res:
                 continue
             sqlFile.close()
-        print("SQL File "+str(i)+" finished.")
-    
-    '''with open('Queries/InsertQueries1.sql', 'r') as sqlFile:
-        res = cursor.execute(sqlFile.read(), multi=True)
-        for _ in res:
-            continue'''
+        print("SQL File "+str(i)+"/42 executed.")
     
     db.commit()
     cursor.close()

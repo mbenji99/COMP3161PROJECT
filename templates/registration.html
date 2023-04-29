@@ -1,0 +1,31 @@
+{% extends 'base.html'%}
+
+{% block main %}
+<form class="form-login m-auto" action={{ url_for('register') }} method="post" enctype="multipart/form-data">
+  <div class="form-floating">
+    {{ form.userID(class='form-control', placeholder="Enter your user ID.") }}
+    {{ form.userID.label() }}
+  </div>
+  <div class="form-floating">
+    {{ form.first_name(class='form-control', placeholder="Enter your first name") }}
+    {{ form.first_name.label() }}
+  </div>
+  <div class="form-floating">
+    {{ form.last_name(class='form-control', placeholder="Enter your last name") }}
+    {{ form.last_name.label() }}
+  </div>
+   <div class="form-floating">
+    {{ form.email(class='form-control', placeholder="Enter your email") }}
+    {{ form.email.label() }}
+  </div>
+  <div class="form-floating">
+    {{ form.password(class='form-control', placeholder="Enter your password") }}
+    {{ form.password.label() }}
+  </div>
+  <div class="form-floating">
+    {{ form.account_type(class='form-control', placeholder="Enter your account_type") }}
+    {{ form.account_type.label() }}
+  </div>
+  <button class="btn btn-lg btn-primary w-100 mt-3" type="submit">Register</button>
+</form>
+{% endblock%}

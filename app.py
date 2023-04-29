@@ -1,8 +1,18 @@
-from flask import Flask,make_response,request,session
+from flask import Flask,make_response,request,session,render_template
+from flask_login import current_user,LoginManager
 import DBManager as dbm
+import forms
 
-session['userType'] = 'VISITOR'
 app = Flask(__name__)
+app.secret_key = 'something'
+
+login_manager = LoginManager()
+login_manager.init_app(app) 
+login_manager.login_view = 'login'
+
+@login_manager.user_loader
+def load_user(user_id):
+    return session['userID']
 
 @app.route('/')
 def index():
@@ -10,12 +20,19 @@ def index():
 
 @app.route('/register',methods=['GET','POST'])
 def register():
-    userID = request.form.get('userID')
-    passW = request.form.get('passW')
-    fName= request.form.get('fName')
-    lName= request.form.get('lName')
-    userType = request.form.get('userType')
-    userID = str(userID)
+    if request.method == "GET":
+        form = forms.RegistrationForm()
+        return render_template('registration.html',form=form)
+    
+    userID = request.form.get('User ID')
+    passW = request.form.get('Password')
+    fName= request.form.get('First Name')
+    lName= request.form.get('Last Name')
+    userType = request.form.get('Account Type')
+    email = request.form.get('Email')
+    
+    if userID is None or passW is None or fName is None or lName is None or userType is None or email is None:
+        return make_response("Please ensure there is something in all fields before submitting",404)
     
     if userID[:3] == "620" and len(userID) <= 9:
         dbm.register_user({"userID":userID,"passW":passW,"userType":userType,"fName":fName,"lName":lName})
@@ -23,161 +40,197 @@ def register():
     else:
         return make_response({"Status": "Invalid user id."},404)
 
-  
-@app.route('/users',methods=['GET'])
-def getUsers():
-    db = dbm.get_database()
+@app.route('/login',methods=['POST','GET'])
+def login():
+    if request.method == "GET":
+        form = forms.LoginForm()
+        return render_template('login.html',form=form)
     
-    cursor = db.cursor()
-    cursor.execute("SELECT * FROM Users")
+    userID = request.form.get('User ID')
+    passW = request.form.get('Password')
     
-    users = []
+    if userID is None or passW is None:
+        return make_response("Please enter something in all fields to login",404)
     
-    for uid,fn,ln,email,passw in cursor:
-        user = {}
-        user['UserID'] = uid
-        user['FirstName'] = fn
-        user['LastName'] = ln
-        user['Email'] = email
-        user['Password'] = passw
-        users.append(user)
-        
-        
-    cursor.close()
-    db.close()
-    return make_response(users,200)
+    res = dbm.login_user(userID,passW)
+    
+    if res is None:
+        return make_response("Error. Plese ensure login credentials are correct and try again.",404)
+    
+    session['userType'] = res
+    session['userID'] = userID
+    return make_response("Successful login",200)
 
-@app.route('/courses', methods=['POST'])
+@app.route('/logout')
+def logout():
+    if not session.get('userType'):
+        return make_response("Go to /login to login.",404)
+    session.pop('userType')  
+    session.pop('userID')
+
+@app.route('/create_course', methods=['POST'])
 def createCourse():
-    admin_user_type = "admin"
-    userID = request.form.get('userID')
-    passW = request.form.get('passW')
-    course_name = request.form.get('courseName')
-    start_date = request.form.get('startDate')
-
-    # check if the user is an admin
-    user = dbm.get_user_by_id(userID)
-    if user and user['passW'] == passW and user['userType'] == admin_user_type:
-        # generate a new course ID
-        c_id = "C" + str(dbm.get_next_course_id())
-
-        # insert the new course into the database
-        dbm.create_course({"c_id": c_id, "course_name": course_name, "start_date": start_date})
-
-        return make_response({"Status": "Course created successfully.", "c_id": c_id}, 200)
-    else:
-        return make_response({"Status": "You do not have permission to create a course."}, 401)
+    if not session.get('userType'):
+        return make_response("Login to create courses",404)
     
-@app.route('/courses', methods=['GET'])
-def getCourses():
-    course_id = request.args.get('courseID')
-    student_id = request.args.get('studentID')
-    lecturer_id = request.args.get('lecturerID')
-
-    if not any([course_id, student_id, lecturer_id]):
-        return make_response({"Status": "Please provide a query parameter to retrieve courses."}, 400)
-
-    if course_id:
-        # retrieve a specific course
-        course = dbm.get_course_by_id(course_id)
-        if course:
-            return make_response(course, 200)
-        else:
-            return make_response({"Status": "Course not found."}, 404)
-    elif student_id:
-        # retrieve courses for a specific student
-        courses = dbm.get_courses_by_student_id(student_id)
-        return make_response(courses, 200)
-    elif lecturer_id:
-        # retrieve courses taught by a specific lecturer
-        courses = dbm.get_courses_by_lecturer_id(lecturer_id)
-        return make_response(courses, 200)
+    if session['userType'] != "ADMIN":
+        return make_response("Only admins can access this page and you are not one.", 404)
     
-@app.route('/register_course', methods=['POST'])
-def registerCourse():
-    course_id = request.form.get('courseID')
-    student_id = request.form.get('studentID')
-    lecturer_id = request.form.get('lecturerID')
+    courseCode = request.form.get("course_code")
+    course_name = request.form.get('course_name')
+    start_date = request.form.get('start_date')
+    credits = request.form.get('credits')
+    
+    if courseCode is None or course_name is None or start_date is None or credits is None:
+        return make_response("Please ensure there is something in all fields before submitting",404)
 
-    if not course_id:
-        return make_response({"Status": "Please provide a course ID."}, 400)
+    dbm.create_course({"courseCode": courseCode, "course_name": course_name, "start_date": start_date, "credits": credits})
+
+    return make_response({"Status": "Course created successfully.", "courseCode": courseCode}, 200)
+   
+@app.route('/courses',methods=['GET','POST'])
+def get_courses():
+    if not session.get('userType'):
+        return make_response("Login to view courses",404)
+    
+    if request.method == "GET":
+        courses = dbm.get_courses("All")
+        return make_response(courses,200)
+
+    u_id = request.form.get('u_id')
+    courses = dbm.get_courses_by_id(u_id)
+    
+    if courses is not None:
+        return make_response(courses,200)
+    
+    return make_response("That id does not exist or is not registered for any course",404)
+        
+   
+@app.route('/register_course', methods=['GET','POST'])
+def register_course():
+    if not session.get('userType'):
+        return make_response("Login to register for courses",404)
+    
+    if request.method == "GET":
+        return make_response("Enter the course code of the course you want to apply to",200)
+    
+    course_code = request.form.get('courseCode')
+    student_id = request.form.get('stud_id')
+    lecturer_id = request.form.get('lect_id')
+
+    
+    if not course_code:
+        return make_response({"Status": "Please provide a course code."}, 400)
 
     # check if the course exists
-    course = dbm.get_course_by_id(course_id)
-    if not course:
+    course = dbm.get_courses(course_code)
+    if course is None:
         return make_response({"Status": "Course not found."}, 404)
+    
+    lect,studs = dbm.get_members(course_code)
 
     # check if a lecturer is already assigned to the course
-    if course['lecturerID']:
+    if len(lect) != 0:
         return make_response({"Status": "A lecturer is already assigned to this course."}, 400)
 
+        
     # if the lecturer ID is provided, check if it is valid
     if lecturer_id:
-        lecturer = dbm.get_user_by_id(lecturer_id)
-        if not lecturer or lecturer['userType'] != 'lecturer':
+        lecturer = dbm.get_lecturer_by_id(lecturer_id)
+        if not lecturer:
             return make_response({"Status": "Invalid lecturer ID."}, 400)
-        course['lecturerID'] = lecturer_id
+        course['lect_id'] = lecturer_id
 
     # if the student ID is provided, register the student for the course
     if student_id:
-        student = dbm.get_user_by_id(student_id)
-        if not student or student['userType'] != 'student':
+        student = dbm.get_student_by_id(student_id)
+        if not student:
             return make_response({"Status": "Invalid student ID."}, 400)
         # check if the student is already registered for the course
-        if dbm.is_registered(course_id, student_id):
+        if dbm.is_enrolled(course_code, student_id):
             return make_response({"Status": "Student already registered for the course."}, 400)
-        dbm.register_student_for_course(course_id, student_id)
+        dbm.enroll_student_in_course(course_code, student_id)
 
     # update the course in the database
     dbm.update_course(course)
 
     return make_response({"Status": "Registration successful."}, 200)
 
-@app.route('/courses/<course_id>/events', methods=['GET'])
-def getCalendarEvents(course_id):
-    events = dbm.get_events_by_course_id(course_id)
-    if events:
-        return make_response(events, 200)
-    else:
+@app.route('/courses/<courseCode>/events', methods=['GET','POST'])
+def CalendarEvents(courseCode):
+    if not session.get('userType'):
+        return make_response("Login to view course events",404)
+    
+    if request.method == "GET":
+        events = dbm.get_course_events(courseCode)
+        if events is not None:
+            return make_response(events, 200)
+        
         return make_response({"Status": "No calendar events found for this course."}, 404)
+    
+    if session['userType'] != "ADMIN":
+        return make_response("Only admins can access this page and you are not one.", 404)
+    
+    event_title = request.form.get('eventTitle')
+    event_date = request.form.get('eventDate')
+    event_details = request.form.get('eventDetails')
+    
+    isCourse = dbm.get_courses(courseCode)
+    if isCourse is None:
+        return make_response("That Course does not exist.",404)
+    
+    dbm.create_calendar_event({"courseCode": courseCode, "event_title": event_title, "event_date": event_date, "event_details": event_details})
 
-@app.route('/students/<student_id>/events', methods=['GET'])
-def getStudentCalendarEvents(student_id):
-    date = request.args.get('date')
-    if not date:
-        return make_response({"Status": "Please provide a date query parameter."}, 400)
+    return make_response({"Status": "Event created successfully."}, 200)
 
-    events = dbm.get_events_by_student_id_and_date(student_id, date)
-    if events:
+@app.route('/events', methods=['GET','POST'])
+def getStudentCalendarEvents(stud_id):
+    if not session.get('userType'):
+        return make_response("Login to view student calendar events",404)
+    
+    if request.method == 'GET':
+        return make_response("Enter the date you wish to view events for.")
+    
+    date = request.form.get('date')
+    events
+    
+    if session['userType'] == "STUDENT":
+        if not date:
+            return make_response({"Status": "Please provide a date."}, 404)
+
+        events = dbm.get_date_events(date, session['userID'])
+        
+    else:
+        stud_id = request.form.get('stud_id')
+        events = dbm.get_date_events(date, stud_id)
+        
+    if events is not None:
         return make_response(events, 200)
     else:
         return make_response({"Status": "No calendar events found for this student on this date."}, 404)
 
-@app.route('/courses/<course_id>/events', methods=['POST'])
-def createCalendarEvent(course_id):
-    admin_user_type = "admin"
-    userID = request.form.get('userID')
-    passW = request.form.get('passW')
-    event_name = request.form.get('eventName')
+@app.route('/courses/<courseCode>/events', methods=['POST'])
+def createCalendarEvent(courseCode):
+    if not session.get('userType'):
+        return make_response("Login to create calendar events.",404)
+    
+    event_title = request.form.get('eventTitle')
     event_date = request.form.get('eventDate')
-    event_desc = request.form.get('eventDescription')
+    event_details = request.form.get('eventDetails')
 
-    # check if the user is an admin
-    user = dbm.get_user_by_id(userID)
-    if user and user['passW'] == passW and user['userType'] == admin_user_type:
-        # generate a new event ID
-        e_id = "E" + str(dbm.get_next_event_id())
+    if session['userType'] == 'ADMIN':
+        dbm.create_calendar_event({"courseCode": courseCode, "event_name": event_title, "event_date": event_date, "event_details": event_details})
 
-        # insert the new event into the database
-        dbm.create_event({"e_id": e_id, "course_id": course_id, "event_name": event_name, "event_date": event_date, "event_desc": event_desc})
-
-        return make_response({"Status": "Event created successfully.", "e_id": e_id}, 200)
+        return make_response({"Status": "Event created successfully."}, 200)
     else:
         return make_response({"Status": "You do not have permission to create an event."}, 401)
 
-@app.route('/reports', methods=['GET'])
+@app.route('/reports', methods=['POST'])
 def getReports():
-    report_type = request.args.get('type')
+    if not session.get('userType'):
+        return make_response("Login to view reports",404)
+    
+    report_type = request.form.get('type')
 
     if report_type == 'courses_50_or_more_students':
         courses = dbm.get_courses_with_50_or_more_students()
@@ -196,15 +249,21 @@ def getReports():
         return make_response(students, 200)
     else:
         return make_response({"Status": "Invalid report type."}, 400)
-
+    
 @app.route('/Forums/<course>',methods=['GET'])
 def getForums(course):
+    if not session.get('userType'):
+        return make_response("Login to view forums",404)
+    
     forums = dbm.get_forums(course)
     return make_response(forums)
 
 @app.route('/CourseMembers/<course>',methods=['GET'])
-def getCourseMembers(courseCode):
-    members = dbm.get_members(courseCode)
+def getCourseMembers(course):
+    if not session.get('userType'):
+        return make_response("Login to view course members",404)
+    
+    members = dbm.get_members(course)
     
     if members is None:
         return make_response("That course does not exist",404)
@@ -212,6 +271,8 @@ def getCourseMembers(courseCode):
     return make_response(members,200)
 
 if __name__ == "__main__": 
+    #sql_gen.genCreateSQL()
+    #sql_gen.genInsertSQL()
+    #sql_gen.executeSQL()
     app.run()
-    #dbm.genCreateSQL()
-    #dbm.genInsertSQL()
+    

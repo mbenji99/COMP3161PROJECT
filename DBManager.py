@@ -11,39 +11,6 @@ def get_database():
         auth_plugin=AUTH)
     return db
 
-'''
-ef create_tables():
-    db = get_database()
-    cursor = db.cursor(dictionary=True)
-    with open('CreateQueries.sql', 'r') as sqlFile:
-        res = cursor.execute(sqlFile.read(), multi=True)
-        for _ in res:
-            continue
-        
-# needs to be refactored to fit updated database schema
-def populate_tables():
-    fullNames = nameGenerator.getFullNames()
-    genCreateSQL()
-    genInsertSQL()
-    db = get_database()
-    cursor = db.cursor()
-    
-    count = 620000000
-    query = "INSERT INTO Users (userID,firstName,lastName,userType,email,passW) VALUES "
-    for name in fullNames:
-        names = name.split(" ")
-        query += f"({count},'{names[0]}','{names[1]}','STUDENT','{names[0]}{names[1]}@gmail.com','{names[1]}{names[0]}'),"
-        count+=1
-
-    query += f"(620,'Chukwudi','Ojuro','ADMIN','chukwudiojuro@gmail.com','password')"
-
-    cursor.execute(query)
-    db.commit()
-    
-    cursor.close()
-    db.close()'''
-
-
 def register_user(info):
     db = get_database()
     cursor = db.cursor()
@@ -63,10 +30,10 @@ def register_user(info):
     query = f"INSERT INTO Users (u_id, f_name, l_name, email, passW) VALUES "
     query += f"({userID},{fName},{lName},{fName}{lName}@gmail.com,{passW})"
     
-    if info['userType'] == "STUDENT":
+    if userType == "STUDENT":
         query = "INSERT INTO Students (s_id,level,date_enrolled) VALUES "
         query += f"({info['userID']},'UNDERGRAD', CURRENT_DATE())"
-    elif info['userType'] == "LECTURER":
+    elif userType == "LECTURER":
         query = "INSERT INTO Course_Maintainers (lec_id,salary) VALUES "
         query += f"({info['userID']},80000)"
     cursor.execute(query)
@@ -81,36 +48,139 @@ def login_user(userID, passW):
     db = get_database()
     cursor = db.cursor()
     
-    query = f"SELECT * FROM Users WHERE userID={userID} AND passW='{passW}'"
+    query = f"SELECT * FROM Users WHERE u_id = {userID} AND passW = '{passW}'"
     cursor.execute(query)
     res = cursor.fetchone()
     
     if res is not None:
-        return res[0]
-    else:
-        return "Null"
+        res = getUserType(userID)
     
-def create_courses(info):
-    # Create a new course with the provided information
-    cursor = connection.cursor()
-    cursor.execute("INSERT INTO Courses (c_id, course_name, start_date) VALUES (%s, %s, %s)",
-                   (info['c_id'], info['course_name'], info['start_date']))
-    connection.commit()
+    return res
+
+def getUserType(id):
+    db = get_database()
+    cursor = db.cursor()
     
+    query = f"SELECT * FROM Admins WHERE admin_id = {id}"
+    cursor.execute(query)
+    res = cursor.fetchone()
+    if res is not None:
+        return "ADMIN"
+    
+    query = f"SELECT * FROM Students WHERE stud_id = {id}"
+    cursor.execute(query)
+    res = cursor.fetchone()
+    if res is not None:
+        return "STUDENT"
+    
+    query = f"SELECT * FROM Teachers WHERE lect_id = {id}"
+    cursor.execute(query)
+    res = cursor.fetchone()
+    if res is not None:
+        return "LECTURER"
+
+
 def get_courses(case):
-    cursor = connection.cursor(dictionary=True)
+    db = get_database()
+    cursor = db.cursor()
+    output = None
     if case == "All":
         cursor.execute("SELECT * FROM Courses")
-        return cursor.fetchall()
+        output = cursor.fetchall()
     else:
-        cursor.execute("SELECT * FROM Courses WHERE c_id=%s", (case,))
-        return cursor.fetchone()
+        cursor.execute("SELECT * FROM Courses WHERE courseCode=%s", (case,))
+        output = cursor.fetchall()
+    
+    cursor.close()
+    db.close()
+    return output
+
+def get_courses_by_id(id):
+    db = get_database()
+    cursor = db.cursor()
+    
+    userType = getUserType(id)
+    query = ""
+    
+    if userType == "LECTURER":
+        query = f"SELECT courseCodes FROM Course_Maintainers WHERE lect_id = {id}"
+    elif userType == "STUDENT":
+        query = f"SELECT courseCodes FROM Enrolled WHERE u_id = {id}"
+    else:
+        return
+    
+    cursor.execute(query)
+    res = cursor.fetchall()
+    
+    cursor.close()
+    db.close()
+    return res
+    
+def create_course(info):
+    # Create a new course with the provided information
+    db = get_database()
+    cursor = db.cursor()
+    cursor.execute("INSERT INTO Courses (courseCode, course_name, start_date, credits) VALUES (%s, %s, %s, %s)",
+                   (info['courseCode'], info['course_name'], info['start_date'], info['credits']))
+    db.commit()
+    
+    cursor.close()
+    db.close()
 
 def register_for_course(info):
-    cursor = connection.cursor()
-    cursor.execute("INSERT INTO CourseMembers (c_id, s_id, lec_id, date_joined) VALUES (%s, %s, %s, %s)",
-                   (info['c_id'], info['s_id'], info['lec_id'], info['date_joined']))
-    connection.commit()
+    db = get_database()
+    cursor = db.cursor()
+    cursor.execute("INSERT INTO Enrolled (u_id, courseCode) VALUES (%s, %s)",
+                   (info['stud_id'], info['courseCode']))
+    db.commit()
+    
+    cursor.close()
+    db.close()
+    
+def get_course_events(course_code):
+    db = get_database()
+    cursor = db.cursor()
+    cursor.execute("SELECT * FROM CalendarEvents WHERE courseCode=%s", (course_code,))
+    res = cursor.fetchall()
+
+    cursor.close()
+    db.close()
+    return res
+    
+def get_date_events(date, student_id):
+    db = get_database()
+    cursor = db.cursor()
+    cursor.execute("SELECT * FROM Courses WHERE start_date=%s AND courseCode IN \
+                    (SELECT courseCode FROM Enrolled WHERE u_id=%s)", (date, student_id))
+    res = cursor.fetchall()
+
+    cursor.close()
+    db.close()
+    return res
+
+def create_calendar_event(info):
+    db = get_database()
+    cursor = db.cursor()
+    cursor.execute("INSERT INTO CalendarEvents (event_name, courseCode, event_details, event_date) \
+                    VALUES (%s, %s, %s, %s)", (info['event_name'], info['courseCode'], info['event_details'], info['event_date']))
+    db.commit()
+
+    cursor.close()
+    db.close()
+    
+def create_assignment_event(info):
+    db = get_database()
+    cursor = db.cursor()
+    
+    cursor.execute("INSERT INTO CalendarEvents (event_name, courseCode, event_details, event_date) \
+                    VALUES (%s, %s, %s, %s)", (info['event_name'], info['courseCode'], info['event_details'], info['event_date']))
+    
+    cursor.execute("INSERT INTO AssignmentEvents (event_id, assignment_id) \
+                    VALUES (%s, %s)", (info['event_id'], info['assignment_id']))
+    db.commit()
+
+    cursor.close()
+    db.close()
 
 def assign_lecturer(courseCode,lecturerID):
     pass
@@ -124,37 +194,20 @@ def get_members(course):
     res = cursor.fetchone()
     
     if res is None:
-        return None
+        return
     
-    stud_query = f"SELECT * FROM Enrolled WHERE courseCode = '{course}'"
+    stud_query = f"SELECT Users.u_id, Users.fName, Users.lName FROM Enrolled JOIN Users ON Enrolled.u_id = Users.u_id WHERE courseCode = '{course}' ORDER BY Users.fName"
     cursor.execute(stud_query)
     students = cursor.fetchall()
     
-    lect_query = f"SELECT * FROM Course_Maintainers WHERE courseCode = '{course}'"
+    lect_query = f"SELECT Users.u_id, Users.fName, Users.lName FROM Course_Maintainers JOIN Users ON Course_Maintainers.lect_id = Users.u_id WHERE courseCode = '{course}'"
     cursor.execute(lect_query)
-    lecturers = cursor.fetchall()
+    lecturer = cursor.fetchall()
     
     cursor.close()
     db.close()
-    return [lecturers,students]
+    return [lecturer,students]
     
-
-def get_course_events(courseCode):
-    cursor = connection.cursor(dictionary=True)
-    cursor.execute("SELECT * FROM CourseAssignments WHERE c_id=%s", (courseCode,))
-    return cursor.fetchall()
-
-def get_date_events(date, studentID):
-    cursor = connection.cursor(dictionary=True)
-    cursor.execute("SELECT * FROM CourseAssignments WHERE date_assigned=%s AND c_id IN \
-                    (SELECT c_id FROM CourseMembers WHERE s_id=%s)", (date, studentID))
-    return cursor.fetchall()
-
-def create_calendar_event(info):
-    cursor = connection.cursor()
-    cursor.execute("INSERT INTO CourseAssignments (course_assignment_id, c_id, lec_id, date_assigned) \
-                    VALUES (%s, %s, %s, %s)", (info['course_assignment_id'], info['c_id'], info['lec_id'], info['date_assigned']))
-    connection.commit()
 
 def create_forum(info):
     pass
@@ -166,61 +219,78 @@ def create_thread(info):
     pass
 
 def get_courses_with_50_or_more_students():
+    db = get_database()
     query = """
-        SELECT c.c_id, c.course_name, COUNT(cm.course_member_id) as num_students
+        SELECT c.courseCode, c.course_name, COUNT(e.u_id) as num_students
         FROM Courses c
-        JOIN CourseMembers cm ON c.c_id = cm.c_id
-        GROUP BY c.c_id
-        HAVING COUNT(cm.course_member_id) >= 50
+        JOIN Enrolled e ON c.courseCode = e.courseCode
+        GROUP BY c.courseCode
+        HAVING COUNT(e.u_id) >= 50
         ORDER BY num_students DESC;
     """
-    result = db.session.execute(query).fetchall()
-    return [dict(row) for row in result]
+    cursor = db.cursor()
+    cursor.execute(query)
+    result = cursor.fetchall()
+    return result
 
 def get_students_with_5_or_more_courses():
+    db = get_database()
     query = """
-        SELECT s.s_id, s.first_name, s.last_name, COUNT(cm.course_member_id) as num_courses
-        FROM Student s
-        JOIN CourseMembers cm ON s.s_id = cm.s_id
-        GROUP BY s.s_id
-        HAVING COUNT(cm.course_member_id) >= 5
+        SELECT Students.stud_id, Users.fName, Users.lName, COUNT(Enrolled.courseCode) as num_courses
+        FROM Students
+        JOIN Enrolled ON Students.stud_id = Enrolled.u_id
+        JOIN Users ON Students.stud_id = Users.u_id
+        GROUP BY Students.stud_id
+        HAVING COUNT(Enrolled.courseCode) >= 5
         ORDER BY num_courses DESC;
     """
-    result = db.session.execute(query).fetchall()
-    return [dict(row) for row in result]
+    cursor = db.cursor()
+    cursor.execute(query)
+    result = cursor.fetchall()
+    return result
 
 def get_lecturers_with_3_or_more_courses():
+    db = get_database()
     query = """
-        SELECT cm.lec_id, cm.first_name, cm.last_name, COUNT(ca.course_assignment_id) as num_courses
-        FROM CourseAssignments ca
-        JOIN Course_Maintainers cm ON ca.lec_id = cm.lec_id
-        GROUP BY cm.lec_id
-        HAVING COUNT(ca.course_assignment_id) >= 3
+        SELECT Students.stud_id, Users.fName, Users.lName, COUNT(Enrolled.courseCode) as num_courses
+        FROM Students
+        JOIN Enrolled ON Students.stud_id = Enrolled.u_id
+        JOIN Users ON Students.stud_id = Users.u_id
+        GROUP BY Students.stud_id
+        HAVING COUNT(Enrolled.courseCode) >= 3
         ORDER BY num_courses DESC;
     """
-    result = db.session.execute(query).fetchall()
-    return [dict(row) for row in result]
+    cursor = db.cursor()
+    cursor.execute(query)
+    result = cursor.fetchall()
+    return result
 
 def get_top_10_enrolled_courses():
+    db = get_database()
     query = """
-        SELECT c.course_name, COUNT(cm.course_member_id) as num_students
+        SELECT c.course_name, COUNT(e.u_id) as num_students
         FROM Courses c
-        JOIN CourseMembers cm ON c.c_id = cm.c_id
-        GROUP BY c.c_id
+        JOIN Enrolled e ON c.courseCode = e.courseCode
+        GROUP BY c.courseCode
         ORDER BY num_students DESC
         LIMIT 10;
     """
-    result = db.session.execute(query).fetchall()
-    return [dict(row) for row in result]
+    cursor = db.cursor()
+    cursor.execute(query)
+    result = cursor.fetchall()
+    return result
 
 def get_top_10_students_by_average():
+    db = get_database()
     query = """
-        SELECT s.s_id, s.first_name, s.last_name, AVG(g.grade) as average_grade
-        FROM Student s
-        JOIN Grades g ON s.s_id = g.s_id
-        GROUP BY s.s_id
+        SELECT s.stud_id, s.fName, s.lName, AVG(g.grade) as average_grade
+        FROM Students s
+        JOIN Grades g ON s.stud_id = g.s_id
+        GROUP BY s.stud_id
         ORDER BY average_grade DESC
         LIMIT 10;
     """
-    result = db.session.execute(query).fetchall()
-    return [dict(row) for row in result]
+    cursor = db.cursor()
+    cursor.execute(query)
+    result = cursor.fetchall()
+    return result

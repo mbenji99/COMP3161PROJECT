@@ -1,0 +1,28 @@
+{% extends 'base.html'%}
+
+{% block main%}
+<h1> All Courses</h1>
+{% include 'flash_messages.html'%}
+
+<table class="table table-hover">
+    <thead class="thead-dark">
+        <tr>
+            <th scope="col">Course Code</th>
+            <th scope="col">Course Name</th>
+            <th scope="col">Start Date</th>
+            <th scope="col">Credits</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for course in all_course %}
+        <tr>
+            <th scope="row">{{ course.courseCode}}</th>
+            <td>{{ course.courseName}}</td>
+            <td>{{ course.start_date}}</td>
+            <td>{{ course.Credits}}</td>
+            
+        </tr>
+        {%endfor%}
+    </tbody>
+</table>
+{% endblock %}

@@ -45,7 +45,7 @@ CREATE TABLE Course_Maintainers(
     CONSTRAINT PK_Members PRIMARY KEY (lect_id,courseCode));
 
 CREATE TABLE Forums(
-    forum_id int PRIMARY KEY,
+    forum_id int PRIMARY KEY AUTO_INCREMENT,
     forum_title varchar(200),
     forum_details varchar(200),
     courseCode varchar(50),
@@ -53,7 +53,7 @@ CREATE TABLE Forums(
     FOREIGN KEY (courseCode) REFERENCES Courses(courseCode));
 
 CREATE TABLE Threads(
-    thread_id int PRIMARY KEY,
+    thread_id int PRIMARY KEY AUTO_INCREMENT,
     u_id int,
     forum_id int,
     thread_details varchar(255),
@@ -63,13 +63,13 @@ CREATE TABLE Threads(
     FOREIGN KEY (forum_id) REFERENCES Forums(forum_id));
 
 CREATE TABLE Sections(
-    section_id int PRIMARY KEY,
+    section_id int PRIMARY KEY AUTO_INCREMENT,
     courseCode varchar(50),
     section_name varchar(100),
     FOREIGN KEY (courseCode) REFERENCES Courses(courseCode));
 
 CREATE TABLE Content(
-    content_id int PRIMARY KEY,
+    content_id int PRIMARY KEY AUTO_INCREMENT,
     section_id int,
     details varchar(255),
     file_name varchar(100),
@@ -85,15 +85,17 @@ CREATE TABLE Submissions(
     stud_id int,
     file_name varchar(255),
     date_submitted date,
-    CONSTRAINT PK_Subs PRIMARY KEY (assignment_id,stud_id),
+    PRIMARY KEY (assignment_id,stud_id),
     FOREIGN KEY (assignment_id) REFERENCES Assignments (assignment_id),
     FOREIGN KEY (stud_id) REFERENCES Students (stud_id));
 
 CREATE TABLE CalendarEvents(
-    event_id int PRIMARY KEY,
+    event_id int PRIMARY KEY AUTO_INCREMENT,
+    courseCode varchar(255),
     event_name varchar(255),
     event_details varchar(255),
-    event_date varchar(20));
+    event_date varchar(20),
+    FOREIGN KEY (courseCode) REFERENCES Courses (courseCode));
 
 CREATE TABLE AssignmentEvents(
     event_id int PRIMARY KEY,
