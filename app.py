@@ -132,6 +132,56 @@ def register_course():
 
     return make_response({"Status": "Registration successful."}, 200)
 
+# Create a new forum
+@app.route('/forums', methods=['POST'])
+def create_forum():
+    data = request.get_json()
+    forum_id = data['forum_id']
+    forum_title = data['forum_title']
+    forum_details = data['forum_details']
+    courseCode = data['courseCode']
+    date_created = data['date_created']
+    create_forum(forum_id, forum_title, forum_details, courseCode, date_created)
+    return jsonify({'message': 'Forum created successfully!'})
+
+# Create a new thread
+@app.route('/threads', methods=['POST'])
+def create_thread():
+    data = request.get_json()
+    thread_id = data['thread_id']
+    u_id = data['u_id']
+    forum_id = data['forum_id']
+    thread_details = data['thread_details']
+    reply_id = data['reply_id']
+    date_created = data['date_created']
+    create_thread(thread_id, u_id, forum_id, thread_details, reply_id, date_created)
+    return jsonify({'message': 'Thread created successfully!'})
+
+# Get all threads for a forum
+@app.route('/forums/<int:forum_id>/threads', methods=['GET'])
+def get_forum_threads(forum_id):
+    threads = get_forum_threads(forum_id)
+    return jsonify({'threads': threads})
+
+# Get all posts for a thread
+@app.route('/threads/<int:thread_id>/posts', methods=['GET'])
+def get_thread_posts(thread_id):
+    posts = get_thread_posts(thread_id)
+    return jsonify({'posts': posts})
+
+# Create a new post
+@app.route('/posts', methods=['POST'])
+def create_post_api():
+    data = request.get_json()
+    post_id = data['post_id']
+    u_id = data['u_id']
+    thread_id = data['thread_id']
+    post_details = data['post_details']
+    date_created = data['date_created']
+    create_post(post_id, u_id, thread_id, post_details, date_created)
+    return jsonify({'message': 'Post created successfully!'})
+
+
 @app.route('/courses/<courseCode>/events', methods=['GET'])
 def getCalendarEvents(courseCode):
     events = dbm.get_events_by_course_code(courseCode)

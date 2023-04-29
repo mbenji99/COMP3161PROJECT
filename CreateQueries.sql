@@ -67,6 +67,16 @@ CREATE TABLE Threads(
     FOREIGN KEY (u_id) REFERENCES Users(u_id),
     FOREIGN KEY (forum_id) REFERENCES Forums(forum_id));
 
+CREATE TABLE Posts(
+    post_id int PRIMARY KEY,
+    u_id int,
+    thread_id int,
+    post_details varchar(255),
+    date_created date,
+    FOREIGN KEY (u_id) REFERENCES Users(u_id),
+    FOREIGN KEY (thread_id) REFERENCES Threads(thread_id)
+);
+
 CREATE TABLE Sections(
     section_id int PRIMARY KEY,
     courseCode varchar(50),

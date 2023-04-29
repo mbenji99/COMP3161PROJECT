@@ -275,14 +275,35 @@ def create_assignment_event(info):
                     VALUES (%s, %s)", (info['event_id'], info['assignment_id']))
     connection.commit()
 
-def create_forum(info):
-    pass
+def create_forum(forum_id, forum_title, forum_details, courseCode, date_created):
+    # insert new forum into Forums table
+    query = "INSERT INTO Forums (forum_id, forum_title, forum_details, courseCode, date_created) VALUES (%s, %s, %s, %s, %s)"
+    values = (forum_id, forum_title, forum_details, courseCode, date_created)
+    execute_query(query, values)
 
-def get_forums(courseCode):
-    pass
+def create_thread(thread_id, u_id, forum_id, thread_details, reply_id, date_created):
+    # insert new thread into Threads table
+    query = "INSERT INTO Threads (thread_id, u_id, forum_id, thread_details, reply_id, date_created) VALUES (%s, %s, %s, %s, %s, %s)"
+    values = (thread_id, u_id, forum_id, thread_details, reply_id, date_created)
+    execute_query(query, values)
 
-def create_thread(info):
-    pass
+def get_forum_threads(forum_id):
+    # select all threads for the given forum_id
+    query = "SELECT * FROM Threads WHERE forum_id = %s"
+    values = (forum_id,)
+    return execute_query(query, values)
+
+def get_thread_posts(thread_id):
+    # select all posts for the given thread_id
+    query = "SELECT * FROM Posts WHERE thread_id = %s"
+    values = (thread_id,)
+    return execute_query(query, values)
+
+def create_post(post_id, u_id, thread_id, post_details, date_created):
+    # insert new post into Posts table
+    query = "INSERT INTO Posts (post_id, u_id, thread_id, post_details, date_created) VALUES (%s, %s, %s, %s, %s)"
+    values = (post_id, u_id, thread_id, post_details, date_created)
+    execute_query(query, values)
 
 def get_courses_with_50_or_more_students():
     query = """
