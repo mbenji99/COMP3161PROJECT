@@ -94,7 +94,7 @@ def genCreateSQL():
     file.write(query)
     
     query = "CREATE TABLE Forums(\n"
-    query += "    forum_id int PRIMARY KEY AUTO_INCREMENT,\n"
+    query += "    forum_id int PRIMARY KEY AUTO_INCREMENT NOT NULL,\n"
     query += "    forum_title varchar(200),\n"
     query += "    forum_details varchar(200),\n"
     query += "    courseCode varchar(50),\n"
@@ -103,7 +103,7 @@ def genCreateSQL():
     file.write(query)
     
     query = "CREATE TABLE Threads(\n"
-    query += "    thread_id int PRIMARY KEY AUTO_INCREMENT,\n"
+    query += "    thread_id int PRIMARY KEY AUTO_INCREMENT NOT NULL,\n"
     query += "    u_id int,\n"
     query += "    forum_id int,\n"
     query += "    thread_details varchar(255),\n"
@@ -113,15 +113,24 @@ def genCreateSQL():
     query += "    FOREIGN KEY (forum_id) REFERENCES Forums(forum_id));\n\n"
     file.write(query)
     
+    query = "CREATE TABLE Posts(\n"
+    query += "    post_id int PRIMARY KEY AUTO_INCREMENT NOT NULL,\n"
+    query += "    u_id int,\n"
+    query += "    post_details varchar(255),\n"
+    query += "    date_created date,\n"
+    query += "    FOREIGN KEY (u_id) REFERENCES Users(u_id),\n"
+    query += "    FOREIGN KEY (post_id) REFERENCES Threads(thread_id));\n\n"
+    file.write(query)
+    
     query = "CREATE TABLE Sections(\n"
-    query += "    section_id int PRIMARY KEY AUTO_INCREMENT,\n"
+    query += "    section_id int PRIMARY KEY AUTO_INCREMENT NOT NULL,\n"
     query += "    courseCode varchar(50),\n"
     query += "    section_name varchar(100),\n"
     query += "    FOREIGN KEY (courseCode) REFERENCES Courses(courseCode));\n\n"
     file.write(query)
     
     query = "CREATE TABLE Content(\n"
-    query += "    content_id int PRIMARY KEY AUTO_INCREMENT,\n"
+    query += "    content_id int PRIMARY KEY AUTO_INCREMENT NOT NULL,\n"
     query += "    section_id int,\n"
     query += "    details varchar(255),\n"
     query += "    file_name varchar(100),\n"
@@ -145,7 +154,7 @@ def genCreateSQL():
     file.write(query)
     
     query = "CREATE TABLE CalendarEvents(\n"
-    query += "    event_id int PRIMARY KEY AUTO_INCREMENT,\n"
+    query += "    event_id int PRIMARY KEY AUTO_INCREMENT NOT NULL,\n"
     query += "    courseCode varchar(255),\n"
     query += "    event_name varchar(255),\n"
     query += "    event_details varchar(255),\n"
@@ -168,7 +177,7 @@ def genInsertSQL():
     sqlFile.write("USE eclass;\n\n")
     
     # Inserting values into Courses table
-    courseQuery = "INSERT INTO Courses (courseCode,course_name,start_date) VALUES\n"
+    courseQuery = "INSERT INTO Courses (courseCode,course_name,start_date,credits) VALUES\n"
     courseDomains = ["COMP","ECON","MATH","INFO","PHYS","BIOC","CHEM"]
     courseCodes = []
     
@@ -183,8 +192,9 @@ def genInsertSQL():
             cCode = domain+str(courseNumber)
         
         courseCodes.append(cCode)
-        courseQuery += f"    ('{cCode}','Some Course Name','5/Sept'),\n"
-    courseQuery += "    ('COMP3161','Database Management Systems','5/Jan');\n\n"
+        courseQuery += f"    ('{cCode}','Some Course Name','2023-01-5',3),\n"
+    
+    courseQuery += "    ('COMP3161','Database Management Systems','2023-01-5',3);\n\n"
     sqlFile.write(courseQuery)
     sqlFile.close()
     
@@ -209,7 +219,7 @@ def genInsertSQL():
             else:
                 enrolQuery += f"({count},'{courseCodes[i]}'),"
         
-        studentQuery =f"INSERT INTO Students (stud_id,level,date_enrolled) VALUES ({count},'UNDERGRAD','01-01-2020');\n"
+        studentQuery =f"INSERT INTO Students (stud_id,level,date_enrolled) VALUES ({count},'UNDERGRAD','2023-01-5');\n"
         userQuery = f"INSERT INTO Users (u_id,fName,lName,email,passW) VALUES ({count},'{name[0]}','{name[1]}','{name[0]}{name[1]}@gmail.com','{name[1]}{name[0]}');\n"
         
         insert_sqlFile.write(userQuery)
@@ -225,7 +235,7 @@ def genInsertSQL():
     query += "    (1,'Chukwudi','Ojuro','chukwudiojuro@gmail.com','password');\n\n"
     insert_sqlFile.write(query)
     
-    query = "INSERT INTO Students (stud_id,level,date_enrolled) VALUES (3,'GRAD','5/Jan');\n"
+    query = "INSERT INTO Students (stud_id,level,date_enrolled) VALUES (3,'GRAD','2023-01-5');\n"
     insert_sqlFile.write(query)
     
     query = f"INSERT INTO Enrolled (u_id,courseCode) VALUES (3,'{courseCodes[0]}'),\n    (3,'{courseCodes[1]}'),\n    (3,'{courseCodes[2]}');\n\n"

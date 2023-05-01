@@ -2,7 +2,6 @@
 
 {% block main%}
 <h1> All Courses</h1>
-{% include 'flash_messages.html'%}
 
 <table class="table table-hover">
     <thead class="thead-dark">
@@ -15,10 +14,9 @@
     <tbody>
         {% for course in all_course %}
         <tr>
-            <th scope="row">{{ course.courseCode}}</th>
-            <td>{{ course.courseName}}</td>
-            <td>{{ course.number_students}}</td>
-            
+            <th scope="row">{{ course[0]}}</th>
+            <td>{{ course[1]}}</td>            
+            <td>{{ course[2]}}</td>
         </tr>
         {%endfor%}
     </tbody>

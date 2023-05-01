@@ -2,24 +2,21 @@
 
 {% block main%}
 <h1> Student that do 5 or more courses</h1>
-{% include 'flash_messages.html'%}
 
 <table class="table table-hover">
     <thead class="thead-dark">
         <tr>
-            <th scope="col">Lecturer ID</th>
-            <th scope="col">Course Code</th>
-            <th scope="col">Course Name</th>
-            <th scope="col">Number of courses</th>
+            <th scope="col">Student ID</th>
+            <th scope="col">Student Name</th>
+            <th scope="col">Number of Courses</th>
         </tr>
     </thead>
     <tbody>
         {% for course in all_course %}
         <tr>
-            <th scope="row">{{ course.lecturerID}}</th>
-            <td>{{ course.courseCode}}</td>
-            <td>{{ course.courseName}}</td>
-            <td>{{ course.number_courses}}</td>
+            <th scope="row">{{ course[0]}}</th>
+            <td>{{ course[1]}} {{course[2]}}</td>
+            <td>{{ course[3]}}</td>
 
         </tr>
         {%endfor%}

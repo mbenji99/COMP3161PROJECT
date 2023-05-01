@@ -2,21 +2,12 @@
 
 {% block main %}
 <div class="form-login m-auto">
-  <div class="form-floating">
-    <a class="btn btn-primary btn-lg btn-block">50 or More Report</a>
-    <a href="{{ url_for('get_property', propertyid=property.property_id) }}" class="btn btn-primary">View property</a>
-  </div>
-  <div class="form-floating">
-    <a class="btn btn-secondary btn-lg btn-block">5 Or More Report</a>
-  </div>
-  <div class="form-floating">
-    <a class="btn btn-secondary btn-lg btn-block">3 Or More Report</a>
-  </div>
-  <div class="form-floating">
-    <a class="btn btn-secondary btn-lg btn-block">10 Most Enrolled Report</a>
-  </div>
-  <div class="form-floating">
-    <a class="btn btn-secondary btn-lg btn-block">10 Highest Averages Report</a>
-  </div>
+  <form class="form-login m-auto" action={{ url_for('getReports') }} method="post" enctype="multipart/form-data">
+    <div class="form-floating">
+      {{ form.report_type(class='form-control', placeholder="Report Type") }}
+      {{ form.report_type.label() }}
+    </div>
+    <button class="btn btn-lg btn-primary w-100 mt-3" type="submit">Register</button>
+</form>
 </div>
 {% endblock%}

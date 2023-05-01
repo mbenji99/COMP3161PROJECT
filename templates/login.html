@@ -4,6 +4,7 @@
 
 <form class="form-login m-auto" method="post" action="{{url_for("login")}}">
     {{ form.csrf_token}}
+    <h4>{{status}}</h4>
     <h2>Please sign in</h2>
     
     <div class="form-floating">

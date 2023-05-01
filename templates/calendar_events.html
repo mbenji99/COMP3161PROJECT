@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block main %}
+
+    <h1>Calendar Events</h1><hr><br>
+
+    
+
+    <form class="form-login m-auto" action="{{ url_for('CalendarEvents') }}" method="post" enctype="multipart/form-data">
+        <p>Enter the date you wish to check events for:</p><br>
+
+        <br>
+
+        {% if userType != "STUDENT" %}
+            <div class="form-floating">
+                {{ form.stud_id(class='form-control') }}
+                {{ form.stud_id.label() }}
+            </div>
+        {% endif %}
+
+        <div class="form-floating">
+            {{ form.date(class='form-control') }}
+            {{ form.date.label() }}
+        </div>
+
+        <button class="btn btn-lg btn-primary w-100 mt-3" type="submit">Search</button>
+        <input type="hidden" name="formType" id="formType" value="search_by_stud_id"></input>
+        <br>
+    </form>
+    
+    <br>
+        
+    <br>
+    <form class="form-login m-auto" action="{{ url_for('CalendarEvents') }}" method="post" enctype="multipart/form-data">
+        <p>Enter the course code you want to see events for:</p><br>
+        {% if userType == "ADMIN": %}
+            <div class="form-floating">
+                {{ form.courseCode(class='form-control') }}
+                {{ form.courseCode.label() }}
+            </div>
+        {% else %}
+            <label for="courseCode">Select Course to add event to:</label><br>
+            <select name="courseCode" id="courseCode">
+                {% for course in courses %}
+                <option value="{{course['courseCode']}}">{{course['course_name']}}</option>
+                {%endfor%}
+            </select><br>
+        {% endif %}
+
+        <input type="hidden" name="formType" id="formType" value="search_by_course"></input>
+
+        <button class="btn btn-lg btn-primary w-100 mt-3" type="submit">Search by Course Code</button>
+    </form>
+    <br>
+
+    {% if userType != "STUDENT" %}
+        
+        <form class="form-login m-auto" action="{{url_for('CalendarEvents')}}" method="post" enctype="multipart/form-data">
+            <p>Enter Details below to create calendar event:</p><br>
+            {% if userType == "ADMIN"%}
+                <div class="form-floating">
+                    {{ form.courseCode(class='form-control') }}
+                    {{ form.courseCode.label() }}
+                </div>
+            {% else %}
+                <label for="courseCode">Select Course to add event to:</label><br>
+                <select name="courseCode" id="courseCode">
+                    {% for course in courses %}
+                    <option value="{{course['courseCode']}}">{{course['course_name']}}</option>
+                    {%endfor%}
+                </select><br>
+            {% endif %}
+
+            <div class="form-floating">
+                {{ form.date(class='form-control') }}
+                {{ form.date.label() }}
+            </div>
+
+            <div class="form-floating">
+                {{ form.name(class='form-control') }}
+                {{ form.name.label() }}
+            </div>
+
+            <div class="form-floating">
+                {{ form.details(class='form-control') }}
+                {{ form.details.label() }}
+            </div>
+            <input type="hidden" name="formType" id="formType" value="create_course"></input>
+            <button class="btn btn-lg btn-primary w-100 mt-3" type="submit">Create Calendar Event</button>
+        </form>
+    {% endif %}
+
+    {% if events: %}
+        <br><br>
+        <h3>Events</h3>
+        <table class="table table-hover">
+            <thead class="thead-dark">
+                <tr>
+                    <th scope="col">Course Code</th>
+                    <th scope="col">Event Name</th>
+                    <th scope="col">Event Details</th>
+                    <th scope="col">Event Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for event in events %}
+                <tr>
+                    
+                    <td scope="row">
+                        <b>{{ event[1]}}</b>
+                    </td>
+                    
+                    <td>{{ event[2]}}</td>
+                    <td>{{ event[3]}}</td>
+                    <td>{{ event[4]}}</td>
+                    
+                </tr>
+                {%endfor%}
+            </tbody>
+        </table>
+    {% endif %}
+{% endblock %}

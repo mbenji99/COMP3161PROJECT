@@ -2,13 +2,13 @@
 
 {% block main%}
 
-<form class="form-login m-auto" action={{ url_for('get_courses') }} method="post" enctype="multipart/form-data">
+<form class="form-login m-auto" action={{ url_for('register_course') }} method="post" enctype="multipart/form-data">
     <div class="form-floating">
-        {{ form.u_id(class='form-control', placeholder="Search by Student/Lecturer ID") }}
-        {{ form.u_id.label() }}
+        {{ form.courseCode(class='form-control', placeholder="Enter Course Code") }}
+        {{ form.courseCode.label() }}
     </div>
   
-    <button class="btn btn-lg btn-primary w-100 mt-3" type="submit">Search</button>
+    <button class="btn btn-lg btn-primary w-100 mt-3" type="submit">Register</button>
 </form>
 
 <h1> All Courses</h1>
@@ -25,11 +25,7 @@
     <tbody>
         {% for course in all_course %}
         <tr>
-            
-            <td scope="row">
-                <a href="{{url_for('content',courseCode=course.courseCode)}}">{{ course.courseCode}}</a>
-            </td>
-            
+            <th scope="row">{{ course.courseCode}}</th>
             <td>{{ course.course_name}}</td>
             <td>{{ course.start_date}}</td>
             <td>{{ course.credits}}</td>

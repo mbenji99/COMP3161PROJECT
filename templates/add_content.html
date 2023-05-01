@@ -1,0 +1,28 @@
+{% extends 'base.html'%}
+
+{% block main %}
+    <h1>{{cc}}</h1>
+
+
+
+    <form class="form-login m-auto" action={{ url_for('addContent',courseCode=cc) }} method="post" enctype="multipart/form-data">
+        
+        <label for="section_id">Select Section to add Assignment to</label>
+        <select name="section_id" id="section_id">
+            {% for section in sections %}
+            <option value="{{section[0]}}">{{section[2]}}</option>
+            {%endfor%}
+        </select>
+        
+        <div class="form-floating">
+            {{ form.details(class='form-control', placeholder="Enter the details") }}
+            {{ form.details.label() }}
+        </div>
+        <div class="form-floating">
+            {{ form.file(class='form-control') }}
+        </div>
+        <button class="btn btn-lg btn-primary w-100 mt-3" type="submit">Add Content</button>
+    </form>
+
+    <a href="{{url_for("content",courseCode=cc)}}"><button class="btn btn-lg btn-primary w-100 mt-3">Back to Course</button></a>
+{% endblock%}

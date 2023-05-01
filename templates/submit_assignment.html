@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block main %}
+
+<h1>{{info[1]}}</h1><hr><br>
+
+<p>{{info[2]}}</p><br>
+<p>Due Date: {{info[3]}}</p><br><br>
+
+<form class="form-login m-auto" action="{{ url_for('submitAssignment',assignmentID=info[0]) }}" method="post" enctype="multipart/form-data">
+
+    <div class="form-floating">
+        {{ form.file(class='form-control') }}
+        {{ form.file.label() }}
+    </div>
+
+    <button class="btn btn-lg btn-primary w-100 mt-3" type="submit">Submit Assignment</button>
+
+</form>
+
+
+{% endblock %}

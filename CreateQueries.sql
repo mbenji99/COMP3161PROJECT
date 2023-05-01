@@ -45,7 +45,7 @@ CREATE TABLE Course_Maintainers(
     CONSTRAINT PK_Members PRIMARY KEY (lect_id,courseCode));
 
 CREATE TABLE Forums(
-    forum_id int PRIMARY KEY AUTO_INCREMENT,
+    forum_id int PRIMARY KEY AUTO_INCREMENT NOT NULL,
     forum_title varchar(200),
     forum_details varchar(200),
     courseCode varchar(50),
@@ -53,7 +53,7 @@ CREATE TABLE Forums(
     FOREIGN KEY (courseCode) REFERENCES Courses(courseCode));
 
 CREATE TABLE Threads(
-    thread_id int PRIMARY KEY AUTO_INCREMENT,
+    thread_id int PRIMARY KEY AUTO_INCREMENT NOT NULL,
     u_id int,
     forum_id int,
     thread_details varchar(255),
@@ -62,14 +62,22 @@ CREATE TABLE Threads(
     FOREIGN KEY (u_id) REFERENCES Users(u_id),
     FOREIGN KEY (forum_id) REFERENCES Forums(forum_id));
 
+CREATE TABLE Posts(
+    post_id int PRIMARY KEY AUTO_INCREMENT NOT NULL,
+    u_id int,
+    post_details varchar(255),
+    date_created date,
+    FOREIGN KEY (u_id) REFERENCES Users(u_id),
+    FOREIGN KEY (post_id) REFERENCES Threads(thread_id));
+
 CREATE TABLE Sections(
-    section_id int PRIMARY KEY AUTO_INCREMENT,
+    section_id int PRIMARY KEY AUTO_INCREMENT NOT NULL,
     courseCode varchar(50),
     section_name varchar(100),
     FOREIGN KEY (courseCode) REFERENCES Courses(courseCode));
 
 CREATE TABLE Content(
-    content_id int PRIMARY KEY AUTO_INCREMENT,
+    content_id int PRIMARY KEY AUTO_INCREMENT NOT NULL,
     section_id int,
     details varchar(255),
     file_name varchar(100),
@@ -90,7 +98,7 @@ CREATE TABLE Submissions(
     FOREIGN KEY (stud_id) REFERENCES Students (stud_id));
 
 CREATE TABLE CalendarEvents(
-    event_id int PRIMARY KEY AUTO_INCREMENT,
+    event_id int PRIMARY KEY AUTO_INCREMENT NOT NULL,
     courseCode varchar(255),
     event_name varchar(255),
     event_details varchar(255),

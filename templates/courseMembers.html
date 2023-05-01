@@ -1,0 +1,29 @@
+{% extends 'base.html'%}
+{% block main%}
+
+<h1>{{cc}}</h1><br><br>
+
+<h3>Lecturer ID: {{lecturer[0]}}</h3>
+<h3>Lecturer Name: {{lecturer[1]}} {{lecturer[2]}}</h3><br><br>
+
+<p>Number of students: {{students|length}}</p>
+<table class="table table-hover">
+    <thead class="thead-dark">
+        <tr>
+            <th scope="col">Student ID</th>
+            <th scope="col">Student Name</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for student in students %}
+        <tr>
+         
+            <td>{{ student[0]}}</td>
+            <td>{{ student[1]}} {{student[2]}}</td>
+            
+        </tr>
+        {%endfor%}
+    </tbody>
+</table>
+
+{%endblock%}

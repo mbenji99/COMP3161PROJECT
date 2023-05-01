@@ -1,0 +1,44 @@
+{% extends 'base.html'%}
+
+
+
+{% block main %}
+    <h1>{{cc}}</h1>
+    {% if userType != 'STUDENT': %}
+    <a href="{{url_for("addSection",courseCode=cc)}}"><button class="btn btn-lg btn-primary w-100 mt-3">Add Section</button></a>
+    <a href="{{url_for("addContent",courseCode=cc)}}"><button class="btn btn-lg btn-primary w-100 mt-3">Add Content</button></a>
+    <a href="{{url_for("addAssignment",courseCode=cc)}}"><button class="btn btn-lg btn-primary w-100 mt-3">Add Assignment</button></a><br>
+    {%endif%}
+    <rb><br>
+    
+    {% for section in sections %}
+        <hr><h3>{{section[2]}}</h3><br>
+
+        {% for assignment in assignments %}
+            {% if assignment[0] == section[0] %}
+                <br>
+                <p>{{assignment[2]}}</p>
+                <a href="#">{{assignment[3]}}</a><br>
+                <a href="{{url_for('submitAssignment',assignmentID=assignment[0])}}">Click to Submit</a>
+                <p>Due Date: {{assignment[4]}}</p>
+                <br>
+            {% endif %}
+        {%endfor%}
+
+        <br>
+
+        {% for content in contents %}
+            {% if content[1] == section[0]: %}
+            <br>
+                <p>{{content[2]}}</p>
+                <a href="#">{{content[3]}}</a>
+            <br>
+            {% endif %}
+        {% endfor %}
+
+        <br>
+        
+    {% endfor %}
+                    
+    
+{% endblock%}

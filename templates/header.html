@@ -10,35 +10,35 @@
           <a class="nav-link active" href="{{ url_for('index') }}">Home <!--,<span class="visually-hidden">(current)</span>--></a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="#">Register</a>
+            <a class="nav-link" href="{{ url_for('createCourse') }}">Create Course</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link" href="#">Create Course</a>
+          <a class="nav-link" href="{{ url_for('get_courses') }}">View Courses</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="#">View Courses</a>
+          <a class="nav-link" href="{{ url_for('register_course') }}">Register For Course</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="#">Register Student For Course</a>
+          <a class="nav-link" href="{{ url_for('getCourseMembers',course="search") }}">Course Members</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="#">Course Members</a>
+          <a class="nav-link" href="{{ url_for('CalendarEvents') }}">Calendar Events</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="#">Register Student For Course</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="reports.html">Reports</a>
+          <a class="nav-link" href="{{ url_for('getReports') }}">Reports</a>
         </li>
       </ul>
       <ul class="navbar-nav">
-        {% if current_user.is_authenticated %}
+        {% if userType != "VISITOR" %}
           <li class="nav-item">
-            <a class="nav-link active" href="#">Logout</a>
+            <a class="nav-link active" href="{{ url_for('logout') }}">Logout</a>
           </li>
         {% else %}
           <li class="nav-item">
-            <a class="nav-link active" href="#">Login</a>
+            <a class="nav-link active" href="{{ url_for('login',status='None') }}">Login</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('register') }}">Register</a>
           </li>
         {% endif %}
       </ul>
