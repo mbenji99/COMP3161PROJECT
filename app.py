@@ -23,6 +23,7 @@ def index():
     return render_template('home.html',
                         userType=session['userType'])
 
+# REGISTER
 @app.route('/register',methods=['GET','POST'])
 def register():
     if not session.get('userType'):
@@ -46,11 +47,15 @@ def register():
     
    
     if userID[:3] == "620" and len(userID) <= 9:
-        dbm.register_user({"userID":userID,"passW":passW,"userType":userType,"fName":fName,"lName":lName,"email":email})
-        return redirect(url_for('login'))
-    else:
-        return redirect(url_for('register'))
+        res = dbm.register_user({"userID":userID,"passW":passW,"userType":userType,"fName":fName,"lName":lName,"email":email})
+        
+        if res == 1:
+            return redirect(url_for('login'))
+        else:
+            return redirect(url_for('register'))
+    return redirect(url_for('register'))
 
+# LOGIN
 @app.route('/login',methods=['POST','GET'])
 def login():
         
@@ -64,7 +69,6 @@ def login():
     
    
     res = dbm.login_user(userID,passW)
-    print(res)
     
     if res is None:
         return redirect(url_for('login'))
@@ -74,6 +78,7 @@ def login():
     return render_template('home.html',
                            userType=session['userType'])
 
+# LOGOUT
 @app.route('/logout')
 def logout():
     if not session.get('userType'):
@@ -108,7 +113,8 @@ def createCourse():
     dbm.create_course({"courseCode": courseCode, "course_name": course_name, "start_date": start_date, "credits": credits})
 
     return make_response({"Status": "Course created successfully.", "courseCode": courseCode}, 200)
-   
+  
+# COURSES 
 @app.route('/courses',methods=['GET','POST'])
 def get_courses():
     if not session.get('userType'):
@@ -180,6 +186,7 @@ def register_course():
 
     return make_response({"Status": "Registration successful."}, 200)
 
+# REGISTER COURSE
 @app.route('/members/<course>',methods=['GET'])
 def getCourseMembers(course):
     if not session.get('userType'):
@@ -196,33 +203,7 @@ def getCourseMembers(course):
     
     return render_template('courseMembers.html',students=members[1],lecturer=members[0],cc=course)
 
-@app.route('/<courseCode>/events', methods=['GET','POST'])
-def getCalendarEvents(courseCode):
-    if not session.get('userType'):
-        return make_response("Login to view course events",404)
-    
-    if request.method == "GET":
-        events = dbm.get_course_events(courseCode)
-        if events is not None:
-            return make_response(events, 200)
-        
-        return make_response({"Status": "No calendar events found for this course."}, 404)
-    
-    if session['userType'] != "ADMIN":
-        return make_response("Only admins can access this page and you are not one.", 404)
-    
-    event_title = request.form.get('eventTitle')
-    event_date = request.form.get('eventDate')
-    event_details = request.form.get('eventDetails')
-    
-    isCourse = dbm.get_courses(courseCode)
-    if isCourse is None:
-        return make_response("That Course does not exist.",404)
-    
-    dbm.create_calendar_event({"courseCode": courseCode, "event_title": event_title, "event_date": event_date, "event_details": event_details})
-
-    return make_response({"Status": "Event created successfully."}, 200)
-
+# CALENDAR EVENTS
 @app.route('/events', methods=['GET','POST'])
 def CalendarEvents():
     if not session.get('userType'):
@@ -302,130 +283,7 @@ def CalendarEvents():
                                     form=eForm,
                                     courses=courses)
     
-    
-    
-
-@app.route('/reports', methods=['GET','POST'])
-def getReports():
-    if not session.get('userType'):
-        return make_response("Login to view reports",404)
-    
-    if request.method == 'GET':
-        rForm = forms.Reports()
-        return render_template('reports.html',form=rForm)
-    
-    report_type = request.form.get('report_type')
-
-    if report_type == 'courses_50_or_more_students':
-        courses = dbm.get_courses_with_50_or_more_students()
-        return render_template("50ormore.html",all_course=courses)
-    elif report_type == 'students_5_or_more_courses':
-        students = dbm.get_students_with_5_or_more_courses()
-        return render_template("5ormore.html",all_course=students)
-    elif report_type == 'lecturers_3_or_more_courses':
-        lecturers = dbm.get_lecturers_with_3_or_more_courses()
-        return render_template("3ormorecourses.html",all_course=lecturers)
-    elif report_type == 'top_10_enrolled_courses':
-        courses = dbm.get_top_10_enrolled_courses()
-        return render_template("10mostcourses.html",all_course=courses)
-    elif report_type == 'top_10_students_highest_averages':
-        students = dbm.get_top_10_students_highest_averages()
-        return make_response(students, 200)
-    else:
-        return make_response({"Status": "Invalid report type."}, 400)
-
-
-@app.route('/content/<courseCode>',methods=['GET'])
-def content(courseCode):
-    if not session.get('userType'):
-        return make_response("Login to view courses",404)
-    
-    isvalidCourse = dbm.get_courses(courseCode)
-    
-    if isvalidCourse is None:
-        return make_response("That is not a valid course.",404)
-    
-    contents= dbm.get_course_content(courseCode)
-    sections = dbm.get_sections(courseCode)
-    assignments = dbm.get_assignments(courseCode)
-    notAssignments = []
-    
-    isAssignment = False
-    for content in contents:
-        for assignment in assignments:
-            if content[0] == assignment[1]:
-                isAssignment = True
-        if not isAssignment:
-            notAssignments.append(content)
-        isAssignment = False
-    
-    return render_template('content.html',
-                           userType=session['userType'],
-                           sections=sections,
-                           contents=notAssignments,
-                           cc=courseCode,
-                           assignments=assignments)
-    
-@app.route('/submit_assignment/<assignmentID>',methods=['GET','POST'])
-def submitAssignment(assignmentID):
-    if not session.get('userType'):
-        return make_response("Login to view courses",404)
-    
-    if request.method == "GET":
-        assignmentInfo = dbm.get_assignment(assignmentID)
-        print(assignmentInfo)
-        aForm = forms.SubmitAssignment()
-        return render_template('submit_assignment.html',
-                               userType=session['userType'],
-                               info=assignmentInfo,
-                               form=aForm)
-        
-    file = request.files['file']
-    file_name = secure_filename(file.filename)
-    
-    dbm.submit_assignment([file_name,assignmentID,session['userID']])
-    
-    
-@app.route('/add_content/<courseCode>', methods=['GET','POST'])
-def addContent(courseCode):
-    if not session.get('userType'):
-        return make_response("Login to add course content",404)
-    elif session['userType'] == "STUDENT":
-        return make_response("You need to be a Lecturer to add content.")
-    elif request.method == 'GET':
-        sections = dbm.get_sections(courseCode)
-        cForm = forms.Content()
-        return render_template('add_content.html',form=cForm,sections=sections,cc=courseCode)
-
-    section_id = request.form.get('section_id')
-    details = request.form.get('details')
-    file = request.files['file']
-    file_name = secure_filename(file.filename)
-    
-    dbm.add_course_content([section_id,details,file_name])
-    
-    sections = dbm.get_sections(courseCode)
-    cForm = forms.Content()
-    return render_template('add_content.html',form=cForm,sections=sections,cc=courseCode)
-    
-@app.route('/add_section/<courseCode>', methods=['GET','POST'])
-def addSection(courseCode):
-    if not session.get('userType'):
-        return make_response("Login to add course section",404)
-    elif session['userType'] == "STUDENT":
-        return make_response("You need to be a Lecturer to add section.")
-    elif request.method == 'GET':
-        sections = dbm.get_sections(courseCode)
-        if sections is None:
-            return make_response("That course does not exist.",404)
-        sForm = forms.Sections()
-        return render_template('add_sections.html',sections=sections,cc=courseCode,form=sForm)
-
-    section_name = request.form.get('section_name')
-    dbm.add_section([courseCode,section_name])
-    return redirect(url_for('content',courseCode=courseCode))
-
-# Create a new forum
+# FORUMS AND THREADS
 @app.route('/forums', methods=['POST'])
 def create_forum():
     data = request.get_json()
@@ -473,6 +331,78 @@ def create_post_api():
     dbm.create_post(post_id, u_id, thread_id, post_details, date_created)
     return jsonify({'message': 'Post created successfully!'})
 
+# COURSE CONTENT AND SECTIONS
+@app.route('/content/<courseCode>',methods=['GET'])
+def content(courseCode):
+    if not session.get('userType'):
+        return make_response("Login to view courses",404)
+    
+    isvalidCourse = dbm.get_courses(courseCode)
+    
+    if isvalidCourse is None:
+        return make_response("That is not a valid course.",404)
+    
+    contents= dbm.get_course_content(courseCode)
+    sections = dbm.get_sections(courseCode)
+    assignments = dbm.get_assignments(courseCode)
+    notAssignments = []
+    
+    isAssignment = False
+    for content in contents:
+        for assignment in assignments:
+            if content[0] == assignment[1]:
+                isAssignment = True
+        if not isAssignment:
+            notAssignments.append(content)
+        isAssignment = False
+    
+    return render_template('content.html',
+                           userType=session['userType'],
+                           sections=sections,
+                           contents=notAssignments,
+                           cc=courseCode,
+                           assignments=assignments)
+
+@app.route('/add_section/<courseCode>', methods=['GET','POST'])
+def addSection(courseCode):
+    if not session.get('userType'):
+        return make_response("Login to add course section",404)
+    elif session['userType'] == "STUDENT":
+        return make_response("You need to be a Lecturer to add section.")
+    elif request.method == 'GET':
+        sections = dbm.get_sections(courseCode)
+        if sections is None:
+            return make_response("That course does not exist.",404)
+        sForm = forms.Sections()
+        return render_template('add_sections.html',sections=sections,cc=courseCode,form=sForm)
+
+    section_name = request.form.get('section_name')
+    dbm.add_section([courseCode,section_name])
+    return redirect(url_for('content',courseCode=courseCode))
+ 
+@app.route('/add_content/<courseCode>', methods=['GET','POST'])
+def addContent(courseCode):
+    if not session.get('userType'):
+        return make_response("Login to add course content",404)
+    elif session['userType'] == "STUDENT":
+        return make_response("You need to be a Lecturer to add content.")
+    elif request.method == 'GET':
+        sections = dbm.get_sections(courseCode)
+        cForm = forms.Content()
+        return render_template('add_content.html',form=cForm,sections=sections,cc=courseCode)
+
+    section_id = request.form.get('section_id')
+    details = request.form.get('details')
+    file = request.files['file']
+    file_name = secure_filename(file.filename)
+    
+    dbm.add_course_content([section_id,details,file_name])
+    
+    sections = dbm.get_sections(courseCode)
+    cForm = forms.Content()
+    return render_template('add_content.html',form=cForm,sections=sections,cc=courseCode)
+
+# ASSIGNMENTS
 @app.route('/add_assignment/<courseCode>',methods=['GET','POST'])
 def addAssignment(courseCode):
     if not session.get('userType'):
@@ -499,8 +429,56 @@ def addAssignment(courseCode):
     dbm.add_assignment([section_id,due_date,details,file_name])
     
     return redirect(url_for("addAssignment",courseCode=courseCode))
+
+
+@app.route('/submit_assignment/<assignmentID>',methods=['GET','POST'])
+def submitAssignment(assignmentID):
+    if not session.get('userType'):
+        return make_response("Login to view courses",404)
     
+    if request.method == "GET":
+        assignmentInfo = dbm.get_assignment(assignmentID)
+        print(assignmentInfo)
+        aForm = forms.SubmitAssignment()
+        return render_template('submit_assignment.html',
+                               userType=session['userType'],
+                               info=assignmentInfo,
+                               form=aForm)
+        
+    file = request.files['file']
+    file_name = secure_filename(file.filename)
     
+    dbm.submit_assignment([file_name,assignmentID,session['userID']])
+      
+# REPORTS
+@app.route('/reports', methods=['GET','POST'])
+def getReports():
+    if not session.get('userType'):
+        return make_response("Login to view reports",404)
+    
+    if request.method == 'GET':
+        rForm = forms.Reports()
+        return render_template('reports.html',form=rForm)
+    
+    report_type = request.form.get('report_type')
+
+    if report_type == 'courses_50_or_more_students':
+        courses = dbm.get_courses_with_50_or_more_students()
+        return render_template("50ormore.html",all_course=courses)
+    elif report_type == 'students_5_or_more_courses':
+        students = dbm.get_students_with_5_or_more_courses()
+        return render_template("5ormore.html",all_course=students)
+    elif report_type == 'lecturers_3_or_more_courses':
+        lecturers = dbm.get_lecturers_with_3_or_more_courses()
+        return render_template("3ormorecourses.html",all_course=lecturers)
+    elif report_type == 'top_10_enrolled_courses':
+        courses = dbm.get_top_10_enrolled_courses()
+        return render_template("10mostcourses.html",all_course=courses)
+    elif report_type == 'top_10_students_highest_averages':
+        students = dbm.get_top_10_students_highest_averages()
+        return make_response(students, 200)
+    else:
+        return make_response({"Status": "Invalid report type."}, 400)
 
 
 if __name__ == "__main__": 

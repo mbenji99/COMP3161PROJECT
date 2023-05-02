@@ -220,7 +220,7 @@ def genInsertSQL():
                 enrolQuery += f"({count},'{courseCodes[i]}'),"
         
         studentQuery =f"INSERT INTO Students (stud_id,level,date_enrolled) VALUES ({count},'UNDERGRAD','2023-01-5');\n"
-        userQuery = f"INSERT INTO Users (u_id,fName,lName,email,passW) VALUES ({count},'{name[0]}','{name[1]}','{name[0]}{name[1]}@gmail.com','{name[1]}{name[0]}');\n"
+        userQuery = f"INSERT INTO Users (u_id,fName,lName,email,passW) VALUES ({count},'{name[0]}','{name[1]}','{name[0]}{name[1]}@gmail.com','password');\n"
         
         insert_sqlFile.write(userQuery)
         insert_sqlFile.write(studentQuery)

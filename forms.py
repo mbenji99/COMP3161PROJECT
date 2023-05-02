@@ -13,7 +13,7 @@ class RegistrationForm(FlaskForm):
     last_name = StringField('Last Name', validators=[InputRequired()])
     email = StringField('Email', validators=[InputRequired()])
     password = StringField('Password', validators=[InputRequired()])
-    account_type = SelectField('Account Type', choices=[('Lecturer', "Lecturer"), ("Student", 'Student')], validators=[InputRequired()])
+    account_type = SelectField('Account Type', choices=[('LECTURER', "LECTURER"), ("STUDENT", 'STUDENT')], validators=[InputRequired()])
 
 class StudentRegistrationForm(FlaskForm):
     level = SelectField('Level of Study', choices=[('Undergraduate', 'Undergraduate'), ('Graduate', 'Graduate'), ('Doctorate', 'Doctorate')], validators=[InputRequired()])

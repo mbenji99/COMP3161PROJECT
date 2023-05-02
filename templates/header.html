@@ -7,25 +7,25 @@
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
       <ul class="navbar-nav me-auto">
         <li class="nav-item">
-          <a class="nav-link active" href="{{ url_for('index') }}">Home <!--,<span class="visually-hidden">(current)</span>--></a>
+          <a class="nav-link {% if request.endpoint == "index" %}active{% endif %}" href="{{ url_for('index') }}">Home <!--,<span class="visually-hidden">(current)</span>--></a>
         </li>
         <li class="nav-item">
-            <a class="nav-link" href="{{ url_for('createCourse') }}">Create Course</a>
+            <a class="nav-link {% if request.endpoint == "createCourse" %}active{% endif %}" href="{{ url_for('createCourse') }}">Create Course</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="{{ url_for('get_courses') }}">View Courses</a>
+          <a class="nav-link {% if request.endpoint == "get_courses" %}active{% endif %}" href="{{ url_for('get_courses') }}">View Courses</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="{{ url_for('register_course') }}">Register For Course</a>
+          <a class="nav-link {% if request.endpoint == "register_course" %}active{% endif %}" href="{{ url_for('register_course') }}">Register For Course</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="{{ url_for('getCourseMembers',course="search") }}">Course Members</a>
+          <a class="nav-link {% if request.endpoint == "getCourseMembers" %}active{% endif %}" href="{{ url_for('getCourseMembers',course="search") }}">Course Members</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="{{ url_for('CalendarEvents') }}">Calendar Events</a>
+          <a class="nav-link {% if request.endpoint == "CalendarEvents" %}active{% endif %}" href="{{ url_for('CalendarEvents') }}">Calendar Events</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="{{ url_for('getReports') }}">Reports</a>
+          <a class="nav-link {% if request.endpoint == "getReports" %}active{% endif %}" href="{{ url_for('getReports') }}">Reports</a>
         </li>
       </ul>
       <ul class="navbar-nav">

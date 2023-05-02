@@ -4,8 +4,35 @@
 
     <h1>Calendar Events</h1><hr><br>
 
+    {% if events: %}
+        <br><br>
+        <table class="table table-hover">
+            <thead class="thead-dark">
+                <tr>
+                    <th scope="col">Course Code</th>
+                    <th scope="col">Event Name</th>
+                    <th scope="col">Event Details</th>
+                    <th scope="col">Event Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for event in events %}
+                <tr>
+                    
+                    <td scope="row">
+                        <b>{{ event[1]}}</b>
+                    </td>
+                    
+                    <td>{{ event[2]}}</td>
+                    <td>{{ event[3]}}</td>
+                    <td>{{ event[4]}}</td>
+                    
+                </tr>
+                {%endfor%}
+            </tbody>
+        </table>
+    {% endif %}
     
-
     <form class="form-login m-auto" action="{{ url_for('CalendarEvents') }}" method="post" enctype="multipart/form-data">
         <p>Enter the date you wish to check events for:</p><br>
 
@@ -29,8 +56,8 @@
     </form>
     
     <br>
-        
-    <br>
+    <hr>
+
     <form class="form-login m-auto" action="{{ url_for('CalendarEvents') }}" method="post" enctype="multipart/form-data">
         <p>Enter the course code you want to see events for:</p><br>
         {% if userType == "ADMIN": %}
@@ -39,7 +66,6 @@
                 {{ form.courseCode.label() }}
             </div>
         {% else %}
-            <label for="courseCode">Select Course to add event to:</label><br>
             <select name="courseCode" id="courseCode">
                 {% for course in courses %}
                 <option value="{{course['courseCode']}}">{{course['course_name']}}</option>
@@ -51,7 +77,9 @@
 
         <button class="btn btn-lg btn-primary w-100 mt-3" type="submit">Search by Course Code</button>
     </form>
+
     <br>
+    <hr>
 
     {% if userType != "STUDENT" %}
         
@@ -88,35 +116,5 @@
             <input type="hidden" name="formType" id="formType" value="create_course"></input>
             <button class="btn btn-lg btn-primary w-100 mt-3" type="submit">Create Calendar Event</button>
         </form>
-    {% endif %}
-
-    {% if events: %}
-        <br><br>
-        <h3>Events</h3>
-        <table class="table table-hover">
-            <thead class="thead-dark">
-                <tr>
-                    <th scope="col">Course Code</th>
-                    <th scope="col">Event Name</th>
-                    <th scope="col">Event Details</th>
-                    <th scope="col">Event Date</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for event in events %}
-                <tr>
-                    
-                    <td scope="row">
-                        <b>{{ event[1]}}</b>
-                    </td>
-                    
-                    <td>{{ event[2]}}</td>
-                    <td>{{ event[3]}}</td>
-                    <td>{{ event[4]}}</td>
-                    
-                </tr>
-                {%endfor%}
-            </tbody>
-        </table>
     {% endif %}
 {% endblock %}
